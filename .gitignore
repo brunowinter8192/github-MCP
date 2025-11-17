@@ -1,0 +1,14 @@
+# Environment variables (contains secrets)
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Debug and logs
+debug/
+logs/
+*.log
+
+# macOS
+.DS_Store
