@@ -2,6 +2,13 @@
 
 GitHub API tools for code discovery and repository exploration.
 
+**Remote:** https://github.com/brunowinter8192/github-MCP
+
+After major changes, push to remote:
+```bash
+git add -A && git commit -m "Your message" && git push
+```
+
 ## Prerequisites
 
 - Python 3.10+
