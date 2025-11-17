@@ -1,5 +1,5 @@
 ---
-name: compliance-reviewer-global
+name: compliance-reviewer-mcp
 description: Use this agent to perform comprehensive compliance audits of MCP server projects against CLAUDE.md standards. The agent analyzes server.py, src/ modules, and configuration files, checking for violations in architecture, tool parameters, and documentation.\n\n<example>\nContext: User requests compliance audit of an MCP server.\nuser: "Run a compliance check on the github MCP server"\nassistant: "I'll launch the compliance-reviewer agent to audit server.py and src/ modules against MCP standards."\n</example>
 model: sonnet
 color: blue
