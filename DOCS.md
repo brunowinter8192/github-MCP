@@ -99,12 +99,3 @@ Performs HTTP GET request to GitHub Contents API for specific file path. Returns
 
 ### format_file_response()
 Validates response type is "file" (not directory). Decodes base64 content to UTF-8 string after removing newlines from base64 string. Raises ValueError if path is not a file. Returns dictionary with name, path, size, decoded content, sha, and html_url.
-
-## Configuration
-- GITHUB_API_BASE: "https://api.github.com"
-- RESULTS_PER_PAGE: 20 (for search operations)
-- MAX_TREE_CHARS: 1000 (triggers depth truncation)
-- API Version: 2022-11-28
-
-## Error Handling
-All modules use fail-fast approach with requests.raise_for_status(). No silent error swallowing. Exceptions propagate to FastMCP which handles client communication.
