@@ -2,6 +2,7 @@
 import os
 import requests
 from typing import Literal
+from mcp.types import TextContent
 
 GITHUB_API_BASE = "https://api.github.com"
 RESULTS_PER_PAGE = 20
@@ -12,9 +13,10 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 def search_repos_workflow(
     query: str,
     sort_by: Literal["stars", "forks", "updated", "best_match"] = "best_match"
-) -> dict:
+) -> list[TextContent]:
     raw_response = fetch_repositories(query, sort_by)
-    return format_repo_results(raw_response)
+    formatted_string = format_repo_results(raw_response)
+    return [TextContent(type="text", text=formatted_string)]
 
 
 # FUNCTIONS
@@ -46,23 +48,33 @@ def fetch_repositories(query: str, sort_by: str) -> dict:
 
 
 # Extract relevant fields from raw API response
-def format_repo_results(raw_response: dict) -> dict:
-    items = []
+def format_repo_results(raw_response: dict) -> str:
+    total = raw_response["total_count"]
+    items = raw_response.get("items", [])
 
-    for repo in raw_response.get("items", []):
-        items.append({
-            "owner": repo["owner"]["login"],
-            "repo": repo["name"],
-            "full_name": repo["full_name"],
-            "description": repo.get("description", ""),
-            "stars": repo["stargazers_count"],
-            "forks": repo["forks_count"],
-            "language": repo.get("language", ""),
-            "updated_at": repo["updated_at"],
-            "html_url": repo["html_url"]
-        })
+    lines = []
+    lines.append(f"Found {total:,} repositories matching your query.\n")
 
-    return {
-        "total_count": raw_response["total_count"],
-        "items": items
-    }
+    if not items:
+        lines.append("No results to display.")
+        return "\n".join(lines)
+
+    lines.append("Top Results:\n")
+
+    for idx, repo in enumerate(items, 1):
+        owner = repo["owner"]["login"]
+        name = repo["name"]
+        full_name = repo["full_name"]
+        desc = repo.get("description", "No description")
+        stars = repo["stargazers_count"]
+        forks = repo["forks_count"]
+        lang = repo.get("language", "Unknown")
+        url = repo["html_url"]
+
+        lines.append(f"{idx}. {full_name}")
+        lines.append(f"   Description: {desc}")
+        lines.append(f"   Language: {lang} | Stars: {stars:,} | Forks: {forks:,}")
+        lines.append(f"   URL: {url}")
+        lines.append("")
+
+    return "\n".join(lines)

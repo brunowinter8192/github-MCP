@@ -1,6 +1,7 @@
 # INFRASTRUCTURE
 import os
 import requests
+from mcp.types import TextContent
 
 GITHUB_API_BASE = "https://api.github.com"
 MAX_TREE_CHARS = 1000
@@ -8,11 +9,12 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 
 
 # ORCHESTRATOR
-def get_repo_tree_workflow(owner: str, repo: str, path: str = "") -> dict:
+def get_repo_tree_workflow(owner: str, repo: str, path: str = "") -> list[TextContent]:
     default_branch = fetch_default_branch(owner, repo)
     tree_sha = get_tree_sha(owner, repo, default_branch, path)
     raw_tree = fetch_tree(owner, repo, tree_sha)
-    return format_tree_response(raw_tree, path)
+    formatted_string = format_tree_response(raw_tree, path)
+    return [TextContent(type="text", text=formatted_string)]
 
 
 # FUNCTIONS
@@ -72,32 +74,34 @@ def fetch_tree(owner: str, repo: str, tree_sha: str) -> dict:
 
 
 # Format tree response with depth limiting if needed
-def format_tree_response(raw_tree: dict, base_path: str) -> dict:
+def format_tree_response(raw_tree: dict, base_path: str) -> str:
     tree_items = raw_tree.get("tree", [])
-    formatted_items = []
 
-    for item in tree_items:
-        formatted_items.append({
-            "path": item["path"],
-            "type": "dir" if item["type"] == "tree" else "file",
-            "size": item.get("size", 0)
-        })
+    lines = []
+    lines.append(f"Directory: {base_path if base_path else '/'}\n")
 
-    tree_str = str(formatted_items)
-    truncated = False
-    warning = None
+    if not tree_items:
+        lines.append("Empty directory.")
+        return "\n".join(lines)
 
-    if len(tree_str) > MAX_TREE_CHARS:
-        truncated = True
-        warning = f"Tree truncated due to size (>{MAX_TREE_CHARS} chars). Showing depth 0 and 1 only. Use path parameter to explore deeper."
-        formatted_items = filter_by_depth(formatted_items, max_depth=1)
+    dirs = [item for item in tree_items if item["type"] == "tree"]
+    files = [item for item in tree_items if item["type"] == "blob"]
 
-    return {
-        "base_path": base_path if base_path else "/",
-        "tree": formatted_items,
-        "truncated": truncated,
-        "warning": warning
-    }
+    lines.append(f"Directories ({len(dirs)}):")
+    for item in dirs[:50]:
+        lines.append(f"  {item['path']}/")
+
+    lines.append(f"\nFiles ({len(files)}):")
+    for item in files[:50]:
+        size = item.get("size", 0)
+        lines.append(f"  {item['path']} ({size:,} bytes)")
+
+    current_output = "\n".join(lines)
+    if len(current_output) > MAX_TREE_CHARS:
+        lines.append(f"\n\nWARNING: Tree truncated (>{MAX_TREE_CHARS} chars).")
+        lines.append("Showing top 50 directories and 50 files. Use path parameter to explore subdirectories.")
+
+    return "\n".join(lines)
 
 
 # Filter tree items to only include depth 0 and 1
