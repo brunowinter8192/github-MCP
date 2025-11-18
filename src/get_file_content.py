@@ -2,15 +2,17 @@
 import os
 import requests
 import base64
+from mcp.types import TextContent
 
 GITHUB_API_BASE = "https://api.github.com"
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 
 
 # ORCHESTRATOR
-def get_file_content_workflow(owner: str, repo: str, path: str) -> dict:
+def get_file_content_workflow(owner: str, repo: str, path: str) -> list[TextContent]:
     raw_response = fetch_file_content(owner, repo, path)
-    return format_file_response(raw_response)
+    formatted_string = format_file_response(raw_response)
+    return [TextContent(type="text", text=formatted_string)]
 
 
 # FUNCTIONS
@@ -32,7 +34,7 @@ def fetch_file_content(owner: str, repo: str, path: str) -> dict:
 
 
 # Decode base64 content and format response
-def format_file_response(raw_response: dict) -> dict:
+def format_file_response(raw_response: dict) -> str:
     if raw_response.get("type") != "file":
         raise ValueError(f"Path is not a file, got type: {raw_response.get('type')}")
 
@@ -46,11 +48,19 @@ def format_file_response(raw_response: dict) -> dict:
     else:
         decoded_content = content
 
-    return {
-        "name": raw_response["name"],
-        "path": raw_response["path"],
-        "size": raw_response["size"],
-        "content": decoded_content,
-        "sha": raw_response["sha"],
-        "html_url": raw_response["html_url"]
-    }
+    name = raw_response["name"]
+    path = raw_response["path"]
+    size = raw_response["size"]
+    url = raw_response["html_url"]
+
+    lines = []
+    lines.append(f"File: {path}")
+    lines.append(f"Name: {name}")
+    lines.append(f"Size: {size:,} bytes")
+    lines.append(f"URL: {url}\n")
+    lines.append("Content:")
+    lines.append("=" * 60)
+    lines.append(decoded_content)
+    lines.append("=" * 60)
+
+    return "\n".join(lines)

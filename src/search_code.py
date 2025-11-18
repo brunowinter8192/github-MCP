@@ -1,6 +1,7 @@
 # INFRASTRUCTURE
 import os
 import requests
+from mcp.types import TextContent
 
 GITHUB_API_BASE = "https://api.github.com"
 RESULTS_PER_PAGE = 20
@@ -8,9 +9,10 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 
 
 # ORCHESTRATOR
-def search_code_workflow(query: str) -> dict:
+def search_code_workflow(query: str) -> list[TextContent]:
     raw_response = fetch_code_search(query)
-    return format_code_results(raw_response)
+    formatted_string = format_code_results(raw_response)
+    return [TextContent(type="text", text=formatted_string)]
 
 
 # FUNCTIONS
@@ -36,29 +38,41 @@ def fetch_code_search(query: str) -> dict:
 
 
 # Extract relevant fields from raw API response
-def format_code_results(raw_response: dict) -> dict:
-    items = []
+def format_code_results(raw_response: dict) -> str:
+    total = raw_response["total_count"]
+    items = raw_response.get("items", [])
 
-    for item in raw_response.get("items", []):
-        repo = item["repository"]
-        text_matches = extract_text_matches(item.get("text_matches", []))
+    lines = []
+    lines.append(f"Found {total:,} code matches.\n")
 
-        items.append({
-            "owner": repo["owner"]["login"],
-            "repo": repo["name"],
-            "full_name": repo["full_name"],
-            "description": repo.get("description", ""),
-            "stars": repo.get("stargazers_count", 0),
-            "path": item["path"],
-            "file_name": item["name"],
-            "html_url": item["html_url"],
-            "text_matches": text_matches
-        })
+    if not items:
+        lines.append("No results to display.")
+        return "\n".join(lines)
 
-    return {
-        "total_count": raw_response["total_count"],
-        "items": items
-    }
+    lines.append("Top Matches:\n")
+
+    for idx, item in enumerate(items, 1):
+        repo_info = item["repository"]
+        owner = repo_info["owner"]["login"]
+        repo_name = repo_info["name"]
+        full_name = repo_info["full_name"]
+        path = item["path"]
+        url = item["html_url"]
+
+        lines.append(f"{idx}. {full_name} - {path}")
+        lines.append(f"   URL: {url}")
+
+        if "text_matches" in item and item["text_matches"]:
+            lines.append("   Code Fragments:")
+            text_matches = extract_text_matches(item["text_matches"])
+            for match in text_matches[:3]:
+                fragment = match.get("fragment", "").strip()
+                if fragment:
+                    lines.append(f"     {fragment[:100]}...")
+
+        lines.append("")
+
+    return "\n".join(lines)
 
 
 # Extract code fragments from text match metadata
