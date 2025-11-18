@@ -40,7 +40,9 @@ Parameters:
 - `query`: Search string with qualifiers (e.g., 'machine learning stars:>100 language:python')
 - `sort_by`: stars | forks | updated | best_match (default: best_match)
 
-Returns repositories with owner, repo name, description, stars, URL.
+Returns repositories with owner, repo name, description, stars, URL as formatted JSON string.
+
+**Search Strategy:** Start with 1-2 core keywords (e.g., 'html parser'), check results, then refine by adding qualifiers (language:python, stars:>100). Too many keywords at once yields poor results. Iterate: broad query first, then progressively more specific.
 
 ### search_code
 Search code across GitHub repositories.
@@ -48,7 +50,9 @@ Search code across GitHub repositories.
 Parameters:
 - `query`: Code search query (e.g., 'def train_model language:python repo:tensorflow/tensorflow')
 
-Returns code matches with repository info, file path, and text matches.
+Returns code matches with repository info, file path, and text matches as formatted JSON string.
+
+**Search Strategy:** Start with simple search terms (e.g., 'parse_html language:python'), then narrow down. Overly specific queries return few results. Iterative refinement yields better matches.
 
 ### get_repo_tree
 Explore repository file structure.
@@ -73,6 +77,38 @@ Returns file content with metadata.
 ## Configuration
 
 Environment variable: `GITHUB_TOKEN` (optional, for higher rate limits)
+
+### MCP Registration
+
+**.mcp.json.github** - Example configuration for registering GitHub MCP in other projects:
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "/path/to/venv/bin/fastmcp",
+      "args": ["run", "/path/to/github/server.py"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+**.mcp.json** - Active MCPs used for developing this MCP server (initially empty).
+
+## Bug Fixes
+
+Bug fix documentation is stored in `bug_fixes/` directory. Each fix is documented with:
+- Problem description
+- Root cause analysis
+- Fix implementation with file:line references
+
+## Debug Scripts
+
+Debug and test scripts are stored in `debug/` directories (gitignored):
+- **Simple MCP:** Root-level `debug/` folder
+- **Complex MCP:** Per-module `src/[module]/debug/` folders for multi-API-domain servers
 
 ## Documentation
 

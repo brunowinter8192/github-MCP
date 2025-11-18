@@ -1,10 +1,10 @@
 ---
-description: Check if README.md and DOCS.md need updates after MCP server code changes
+description: Check if README.md and module DOCS.md files need updates after MCP server code changes
 ---
 
 # MCP DOCUMENTATION UPDATE CHECK
 
-Systematic review protocol for README.md and DOCS.md updates following CLAUDE.md MCP server standards.
+Systematic review protocol for README.md and module-level DOCS.md updates following CLAUDE.md MCP server standards.
 
 **Execute this command manually after making code changes to determine if documentation updates are required.**
 
@@ -22,9 +22,9 @@ If you are uncertain whether README.md or DOCS.md should be updated or not, ALWA
 
 Documentation updates are OPTIONAL - only required when changes affect the documented contract or tool behavior.
 
-**Two separate files, two separate concerns:**
+**Two separate concerns:**
 - **README.md:** Usage focused (How to INSTALL and USE the MCP server)
-- **DOCS.md:** Architecture focused (How server.py and src/ modules WORK internally)
+- **src/domain/DOCS.md:** Architecture focused (How modules in that domain WORK internally)
 
 ---
 
@@ -77,14 +77,16 @@ Documentation updates are OPTIONAL - only required when changes affect the docum
 
 ---
 
-## DOCS.md CHECK
+## MODULE DOCS.md CHECK
 
-**Purpose:** DOCS documents the architecture - server.py structure and src/ module internals.
+**Purpose:** Each domain folder in src/ has its own DOCS.md documenting its modules.
+
+**Location:** src/domain_name/DOCS.md
 
 ### Update Required When:
 
-1. **New tool module added to src/**
-   - Add new ## src/module.py section
+1. **New tool module added to domain folder**
+   - Add new ## module.py section to that domain's DOCS.md
    - Document workflow and functions
 
 2. **New function added to existing module**
@@ -105,10 +107,9 @@ Documentation updates are OPTIONAL - only required when changes affect the docum
    - New functions added to workflow
    - Functions removed from sequence
 
-6. **server.py tool definitions change**
-   - New imports from src/
-   - Tool parameter types change
-   - Docstring guidance changes
+6. **New domain folder created**
+   - Create new DOCS.md in that folder
+   - Document all modules in the domain
 
 ### Update NOT Required When:
 
@@ -121,11 +122,12 @@ Documentation updates are OPTIONAL - only required when changes affect the docum
 
 ### Decision Workflow:
 
-1. **Read DOCS** - Locate sections describing changed modules/functions
-2. **Identify Impact** - Does the WHAT change, or only the HOW?
-3. **Check call sequence** - Did workflow orchestrator order change?
-4. **Decision:**
-   - If WHAT changed then Update DOCS section
+1. **Identify affected domain** - Which src/domain/ folder contains changes?
+2. **Read domain DOCS.md** - Locate sections describing changed modules/functions
+3. **Identify Impact** - Does the WHAT change, or only the HOW?
+4. **Check call sequence** - Did workflow orchestrator order change?
+5. **Decision:**
+   - If WHAT changed then Update domain's DOCS.md section
    - If only HOW changed then Document reason for skipping
    - **If uncertain then ASK THE USER**
 
@@ -149,21 +151,21 @@ Ask these questions:
 
 **If YES to any then README update likely required**
 
-### Step 3: DOCS Impact Assessment
+### Step 3: Module DOCS Impact Assessment
 Ask these questions:
-1. Were new modules added to src/?
+1. Were new modules added to a domain folder in src/?
 2. Were new functions added to existing modules?
 3. Do existing functions do something different (WHAT not HOW)?
 4. Did function signatures change (parameters, return types)?
 5. Did the workflow orchestrator call sequence change?
-6. Did server.py imports or tool definitions change?
+6. Was a new domain folder created in src/?
 
-**If YES to any then DOCS update likely required**
+**If YES to any then that domain's DOCS.md update likely required**
 
 ### Step 4: Document Decisions
-For each file (README, DOCS), document:
+For each file (README, domain DOCS), document:
 ```
-FILE: README.md / DOCS.md
+FILE: README.md / src/domain/DOCS.md
 CHANGE: <brief description>
 SECTION: <which section would be affected>
 DECISION: UPDATE REQUIRED / NO UPDATE / UNCERTAIN
@@ -188,10 +190,10 @@ After completing Step 4, summarize:
 ```
 OVERALL RECOMMENDATION:
 - README.md: UPDATE / NO UPDATE
-- DOCS.md: UPDATE / NO UPDATE
+- src/domain/DOCS.md: UPDATE / NO UPDATE (list each affected domain)
 
 QUESTION (if applicable): [Specific uncertainty]
-RECOMMENDATION: [e.g., "Update DOCS.md yes, README no"]
+RECOMMENDATION: [e.g., "Update src/scraper/DOCS.md yes, README no"]
 REASONING: [Brief explanation]
 ```
 
@@ -205,16 +207,17 @@ REASONING: [Brief explanation]
 ## MCP-SPECIFIC CHECKS
 
 ### server.py Changes
-- New @mcp.tool definition then Update both README and DOCS
-- Import from src/ added then Update DOCS (project structure)
-- Tool parameter changed then Update README (usage) and DOCS (function signature)
+- New @mcp.tool definition then Update README and relevant domain DOCS.md
+- Import from src/domain/ added then Update that domain's DOCS.md
+- Tool parameter changed then Update README (usage) and domain DOCS.md (function signature)
 - Docstring changed then Update README (use case guidance)
 
-### src/ Module Changes
-- New module file then Update DOCS (add ## src/module.py section)
-- New function then Update DOCS (add ### function_name() section)
-- Workflow call sequence changed then Update DOCS (orchestrator description)
-- Function contract changed then Update DOCS (input/output description)
+### src/domain/ Module Changes
+- New module file in domain then Update that domain's DOCS.md (add ## module.py section)
+- New function then Update domain's DOCS.md (add ### function_name() section)
+- Workflow call sequence changed then Update domain's DOCS.md (orchestrator description)
+- Function contract changed then Update domain's DOCS.md (input/output description)
+- New domain folder created then Create new DOCS.md in that folder
 
 ### Configuration Changes
 - .mcp.json paths changed then Update README (installation section)
@@ -230,8 +233,9 @@ After running this command, complete the following:
 - [ ] List all files modified in this session
 - [ ] For each change, identify if WHAT or HOW changed
 - [ ] Check README sections affected by tool interface changes
-- [ ] Check DOCS sections affected by architecture changes
-- [ ] Document update decisions for both files
+- [ ] Check domain DOCS.md sections affected by architecture changes
+- [ ] Identify which domain folders are affected
+- [ ] Document update decisions for README and each affected domain's DOCS.md
 - [ ] **Formulate recommendations for each decision**
 - [ ] **Present recommendations to user:**
   - UNCERTAIN then Ask user with YES/NO recommendation

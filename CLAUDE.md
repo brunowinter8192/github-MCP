@@ -31,7 +31,7 @@ Long-term thinking. Brutal honesty. No overengineering.
 ## CRITICAL STANDARDS
 
 - NO comments inside function bodies (only function header comments + section markers)
-- NO test files in root (ONLY in debug/ folder)
+- NO test files in root (ONLY in debug/ folders - root or per-module)
 - NO debug/ or logs/ folders in version control (MUST be in .gitignore)
 - NO emojis in production code, READMEs, DOCS.md, logs
 - NO verbose console output (use logging instead)
@@ -45,25 +45,33 @@ Long-term thinking. Brutal honesty. No overengineering.
 ## MCP SERVER ARCHITECTURE
 
 ### Project Structure
+
+**MCP with module domains:**
 ```
 mcp_server/
 ├── server.py              # MCP server orchestrator (Tool definitions)
-├── src/                   # Tool modules package
+├── src/                   # Source modules package
 │   ├── __init__.py        # Package marker (required for imports)
-│   ├── tool_one.py        # Module for tool_one
-│   ├── tool_two.py        # Module for tool_two
-│   └── tool_three.py      # Module for tool_three
+│   ├── domain_one/        # First domain (e.g., scraper, api_client)
+│   │   ├── __init__.py
+│   │   ├── tool_one.py    # Module for tool_one
+│   │   ├── tool_two.py    # Module for tool_two
+│   │   └── DOCS.md        # Documentation for this domain
+│   └── domain_two/        # Second domain (e.g., config, storage)
+│       ├── __init__.py
+│       ├── settings.yml   # Configuration files
+│       └── DOCS.md        # Documentation for this domain
 ├── README.md              # Quick start, installation, usage
-├── DOCS.md                # Complete module documentation
+├── CLAUDE.md              # Engineering standards
 ├── .mcp.json              # Claude Code MCP registration
-├── debug/                 # CRITICAL: ALL tests and debug scripts
-│   ├── test_tool_one.py
-│   └── test_tool_two.py
-└── logs/                  # CRITICAL: Log files (gitignored)
+├── docker-compose.yml     # Container configuration (if needed)
+├── debug/                 # Debug scripts for testing (gitignored)
+├── bug_fixes/             # Bug fix documentation (gitignored)
+└── logs/                  # Log files (gitignored)
     └── server.log
 ```
 
-**Key principle:** One module per MCP tool in src/. Clean separation with package imports.
+**Key principle:** Each domain folder in src/ contains related modules plus its own DOCS.md. No central DOCS.md - documentation lives with the code it describes. Clean separation with package imports.
 
 ---
 
@@ -77,8 +85,8 @@ from typing import Annotated, Literal
 from fastmcp import FastMCP
 from pydantic import Field
 
-from src.tool_one import tool_one_workflow
-from src.tool_two import tool_two_workflow
+from src.domain.tool_one import tool_one_workflow
+from src.domain.tool_two import tool_two_workflow
 
 mcp = FastMCP("ServerName")
 
@@ -117,7 +125,7 @@ if __name__ == "__main__":
 
 ---
 
-## MODULE PATTERN (src/tool_name.py)
+## MODULE PATTERN (src/domain/tool_name.py)
 
 **CRITICAL:** Each module follows INFRASTRUCTURE → ORCHESTRATOR → FUNCTIONS
 
@@ -372,79 +380,65 @@ FastMCP handles exceptions and communicates errors to client.
 
 ## DOCUMENTATION STRUCTURE
 
-### README.md
+### README.md (root level)
 - Server name and one-liner
 - Installation instructions
 - Quick start (how to run server)
 - Environment variables
-- Link to DOCS.md
+- NO link to central DOCS.md (doesn't exist)
 
-### DOCS.md
-Documents **ALL project files** except documentation markdown files (README.md, DOCS.md, CLAUDE.md).
+### DOCS.md (module level only)
+Each domain folder in src/ has its own DOCS.md documenting its modules.
 
-**Files to document:**
-- Python modules (.py)
-- Configuration files (.yml, .json, .toml)
-- Docker files (docker-compose.yml, Dockerfile)
-- Any other functional files
+**Location:** src/domain_name/DOCS.md
 
-**NOT documented:**
-- README.md (entry point documentation)
-- DOCS.md (self)
-- CLAUDE.md (engineering standards)
-- .gitignore (trivial)
-
-**File naming as headings:**
-- Each file gets ## header with exact filename
-- Use relative path if in subdirectory: `## searxng/settings.yml`
-- NO generic sections like "Configuration" or "Docker Setup"
+**Content:**
+- Documents ALL files in that domain folder
+- Python modules with function descriptions
+- Configuration files with purpose and settings
+- NO project-wide structure (that's in README.md)
 
 **Structure:**
 
 ```markdown
-# Server Name
-One-liner description
+# Domain Name
 
-## Project Structure
-<Complete tree>
+One-liner describing this domain's purpose.
 
-## server.py
-**Purpose:** MCP server orchestrator
+## module_one.py
 
-### tool_name()
-Prose description of what tool does. Explains inputs, outputs, and LLM use case.
-
-## src/tool_module.py
 **Purpose:** WHY this module exists
 **Input:** What parameters it receives
 **Output:** What structure it returns
 
-### tool_workflow()
+### workflow_function()
 Main orchestrator. Coordinates data fetching and formatting.
 
-### fetch_data()
-Performs API request. Sets headers and parameters.
+### helper_function()
+Performs specific operation. Describes what it does.
 
-### format_response()
-Transforms raw data into clean output structure.
+## module_two.py
 
-## docker-compose.yml
-**Purpose:** Container configuration for service dependencies.
+**Purpose:** WHY this module exists
+**Input:** What parameters it receives
+**Output:** What structure it returns
 
-Defines service with port mappings and volume mounts. Sets environment variables and restart policy.
+### workflow_function()
+Main orchestrator for this module.
 
-## config/settings.yml
-**Purpose:** Application configuration.
+## settings.yml
 
-Configures runtime settings. Enables specific features. Sets default values for parameters.
+**Purpose:** Configuration for this domain.
+
+Prose description of settings. Explains each configuration section and its purpose.
 ```
 
 **Rules:**
-- Every file gets ## header with exact filename (including path if nested)
+- DOCS.md lives in module directories, NOT in project root
+- Documents only files in that specific directory
 - Python modules: functions get ### headers
 - Config files: prose description of purpose and settings
-- Prose text only (no bullet lists for function/config descriptions)
-- Order by logical grouping (Python first, then configs)
+- Prose text only (no bullet lists)
 - Describe WHAT not HOW
 
 ---
@@ -506,19 +500,22 @@ claude mcp list
 ## NAMING CONVENTIONS
 
 **server.py:** Always named server.py
-**Modules:** src/tool_name.py (snake_case, matches tool name)
-**Package marker:** src/__init__.py (required for imports)
+**Domain folders:** src/domain_name/ (snake_case, descriptive)
+**Modules:** src/domain/tool_name.py (snake_case, matches tool name)
+**Package markers:** src/__init__.py and src/domain/__init__.py (required for imports)
 **Orchestrator function:** tool_name_workflow()
 **MCP tool function:** @mcp.tool def tool_name()
+**Documentation:** src/domain/DOCS.md (one per domain)
 
 **Examples:**
-- src/search_repos.py → search_repos_workflow() → @mcp.tool def search_repos()
-- src/get_file_content.py → get_file_content_workflow() → @mcp.tool def get_file_content()
+- src/scraper/search_web.py → search_web_workflow() → @mcp.tool def search_web()
+- src/scraper/scrape_urls.py → scrape_urls_workflow() → @mcp.tool def scrape_urls()
+- src/searxng/settings.yml → configuration for SearXNG instance
 
 ---
 
 ## COMPLIANCE
 
-Scripts in `debug/` folder are exempt from CLAUDE.md compliance requirements.
+Scripts in `debug/` folders (root-level or per-module) are exempt from CLAUDE.md compliance requirements.
 
 All other code must follow these standards strictly.
