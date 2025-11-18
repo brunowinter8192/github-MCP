@@ -54,7 +54,7 @@ Repeat for Agent 2 and Agent 3 with their respective workspace paths.
 
 **CRITICAL:** Agents deliver their debug plans BEFORE executing Step 2 (Reproduce).
 
-After Phase 2 agents return with their initial reports, assess their planned approaches:
+After Phase 2 agents return with their initial reports, perform **DUAL ASSESSMENT** (Root Cause + Test Strategy):
 
 ### Collect Agent Plans
 
@@ -62,25 +62,54 @@ Each agent provides:
 1. **Root Cause Analysis** - What they identified as the problem source
 2. **Debug Plan** - What they intend to test/reproduce
 3. **Planned Scripts** - Which debug scripts they will create
+4. **Validation Strategy** - How they will validate across MCP stack
 
-### Assessment Criteria
+### Assessment Criteria (DUAL)
 
-1. **Root Cause Consensus**
+#### A. Root Cause Assessment
+
+1. **Consensus Check**
    - Do all 3 agents identify the same root cause?
-   - If NO: Which agent has the most credible analysis?
+   - If YES with same solution approach: Diversify solutions
+   - If NO: Let agents test different theories (unless obviously wrong)
 
-2. **Approach Overlap**
-   - Are agents planning to test identical approaches?
-   - If YES: Redirect agents to test different solutions
+2. **Sanity Check**
+   - Is any root cause analysis obviously incorrect or "hirnrissig"?
+   - If YES: REDIRECT with hints toward credible analysis
 
-3. **Plan Quality**
-   - Is the debug plan comprehensive?
-   - Does it cover reproduction + validation?
-   - Are planned scripts well-structured?
+#### B. Test Strategy Assessment (CRITICAL)
 
-4. **Approach Diversity**
-   - Do agents cover different solution strategies?
-   - If NO: Assign specific alternative approaches to ensure diversity
+**MANDATORY: All agents MUST test the complete MCP stack - not just isolated functions!**
+
+**Required Test Coverage (3 Pfeiler):**
+```
+✅ Phase 1: Isolated Function Test
+   - Test function logic in debug/ sandbox
+   - Mock data, edge cases, unit testing
+
+✅ Phase 2: FastMCP Integration Test
+   - Test how FastMCP wraps the return value
+   - Verify MCP response structure (content vs structuredContent)
+   - Check actual MCP protocol output
+
+✅ Phase 3: Client Rendering Test
+   - Verify Claude Code client behavior
+   - Document actual rendering (screenshots/descriptions)
+   - Confirm issue is resolved end-to-end
+```
+
+**RED FLAGS (Incomplete Test Strategy):**
+```
+❌ "Test with json.dumps() in Python sandbox"
+❌ "Validate function returns correct string"
+❌ "Mock API calls in debug/ script only"
+❌ NO mention of FastMCP integration
+❌ NO mention of MCP protocol layer
+❌ NO mention of client rendering verification
+```
+
+**If agent plan lacks Phase 2 or Phase 3:**
+→ **MANDATORY REDIRECT** to add missing validation phases
 
 ### Decision & Recommendation Format
 
@@ -94,19 +123,29 @@ Root Cause: [Agent's identified root cause]
 Planned Approach: [Brief summary of debug plan]
 Planned Scripts: [List of scripts agent will create]
 
+TEST STRATEGY ASSESSMENT:
+✅/❌ Phase 1 (Isolated): [present/missing - what they plan to test]
+✅/❌ Phase 2 (FastMCP): [present/missing - what they plan to test]
+✅/❌ Phase 3 (Client): [present/missing - what they plan to test]
+
+⚠️ ISSUES FOUND:
+[List any RED FLAGS - missing validation phases, isolated-only testing, etc.]
+
 OVERLAP CHECK:
 - With Agent Y: [HIGH/MEDIUM/LOW overlap - explain]
 - With Agent Z: [HIGH/MEDIUM/LOW overlap - explain]
 
 QUALITY: [EXCELLENT/GOOD/NEEDS_IMPROVEMENT - explain]
 
-DECISION: GO / REDIRECT / MERGE
+DECISION: GO / REDIRECT
 REASONING: [Why this decision]
 
 INSTRUCTIONS TO AGENT:
 [If GO: "Proceed with your planned approach"]
-[If REDIRECT: "Focus on [specific alternative approach] instead because [reason]"]
-[If MERGE: "Collaborate with Agent Y to test [combined approach]"]
+[If REDIRECT: "Your test plan is incomplete. You MUST add:
+- Phase 2: FastMCP integration test - verify MCP response structure
+- Phase 3: Client rendering test - document Claude Code behavior
+Additionally, [any solution diversification needed]"]
 ```
 
 ### Overall Recommendation
@@ -118,20 +157,42 @@ OVERALL ASSESSMENT
 ==================
 
 Root Cause Consensus: YES/NO - [explanation]
-Approach Diversity: EXCELLENT/GOOD/POOR - [explanation]
+Solution Diversity: EXCELLENT/GOOD/POOR - [explanation]
+Test Strategy Quality:
+  - Agent 1: [COMPLETE/INCOMPLETE - explain]
+  - Agent 2: [COMPLETE/INCOMPLETE - explain]
+  - Agent 3: [COMPLETE/INCOMPLETE - explain]
 
 AGENTS TO PROCEED:
-- Agent 1: [GO/REDIRECT/MERGE] - [brief instruction]
-- Agent 2: [GO/REDIRECT/MERGE] - [brief instruction]
-- Agent 3: [GO/REDIRECT/MERGE] - [brief instruction]
+- Agent 1: [GO/REDIRECT] - [brief instruction]
+- Agent 2: [GO/REDIRECT] - [brief instruction]
+- Agent 3: [GO/REDIRECT] - [brief instruction]
 
 EXPECTED OUTCOME:
 [What solutions/validations you expect from the 3 agents after redirection]
 ```
 
+### Present to User
+
+**CRITICAL:** Present the assessment summary to the user BEFORE resuming agents.
+
+```
+PHASE 2.4: AGENT PLANS ASSESSMENT
+==================================
+
+[Show each agent's assessment with RED FLAGS highlighted]
+
+USER INPUT NEEDED:
+1. Approve REDIRECT for agents with incomplete test strategies?
+2. Approve solution diversification for consensus cases?
+3. Any specific direction you want to give to agents?
+
+[Wait for user response before proceeding]
+```
+
 ### Send Continuation Instructions
 
-Resume each agent with specific instructions based on decisions above. Agents continue from Step 2 (Reproduce) with their assigned approach.
+After user approval, resume each agent with specific instructions based on decisions above. Agents continue from Step 2 (Reproduce) with their assigned approach.
 
 ---
 

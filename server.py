@@ -7,10 +7,10 @@ from mcp.types import TextContent
 
 load_dotenv()
 
-from src.search_repos import search_repos_workflow
-from src.search_code import search_code_workflow
-from src.get_repo_tree import get_repo_tree_workflow
-from src.get_file_content import get_file_content_workflow
+from src.github.search_repos import search_repos_workflow
+from src.github.search_code import search_code_workflow
+from src.github.get_repo_tree import get_repo_tree_workflow
+from src.github.get_file_content import get_file_content_workflow
 
 mcp = FastMCP("GitHub")
 
