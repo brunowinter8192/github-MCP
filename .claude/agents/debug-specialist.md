@@ -51,9 +51,12 @@ DEBUG PLAN
 **Solution Hypothesis**:
 [Your hypothesized fix - what you think will work and why]
 
-**Expected Validation**:
-- Phase 1 (MCP Context): [What you expect to validate]
-- Phase 2 (Standalone): [What edge cases you'll test]
+**Validation Strategy (3 Pfeiler - MANDATORY):**
+- Phase 1 (Isolated): [Test function logic in debug/ sandbox]
+- Phase 2 (FastMCP): [Test MCP response structure - content vs structuredContent]
+- Phase 3 (Client): [Verify Claude Code rendering behavior]
+
+**CRITICAL:** Your validation plan MUST include all 3 phases. Isolated testing alone is insufficient.
 
 AWAITING MAIN AGENT GO/REDIRECT
 ================================
@@ -61,9 +64,9 @@ AWAITING MAIN AGENT GO/REDIRECT
 
 **STOP HERE** and wait for main agent to:
 - Assess your plan against other agents
+- Verify you have complete 3-phase validation strategy
 - Give you GO (proceed as planned)
-- Give you REDIRECT (focus on different approach)
-- Give you MERGE (combine with another agent's approach)
+- Give you REDIRECT (add missing validation phases or focus on different approach)
 
 Only proceed to Step 2 after receiving explicit instructions from main agent.
 
@@ -89,20 +92,38 @@ Only proceed to Step 2 after receiving explicit instructions from main agent.
   - Module follows INFRASTRUCTURE/ORCHESTRATOR/FUNCTIONS pattern
   - Error handling uses raise_for_status() (fail-fast)
 
-**Step 4: Validate Solution (Two-Phase)**
+**Step 4: Validate Solution (Three-Phase - MANDATORY)**
 
-**Phase 1: MCP Context Validation**
-- Location: `debug/validate_[solution]_with_mcp.py`
-- Import fixed module and test with actual API calls
-- Verify tool-chaining compatibility (output includes fields for next tool)
-- Output: `debug/output_validate_[solution]_mcp_YYYYMMDD_HHMMSS.md`
+**CRITICAL:** Isolated testing is NOT sufficient. You MUST validate the complete MCP stack.
 
-**Phase 2: Standalone Validation**
-- Location: `debug/validate_[solution]_standalone.py`
-- Mock API responses and synthetic test inputs
-- Verify edge cases without external dependencies
-- Output: `debug/output_validate_[solution]_standalone_YYYYMMDD_HHMMSS.md`
-- Why both? Phase 1 proves MCP integration. Phase 2 proves logic correctness.
+**Phase 1: Isolated Function Test**
+- Location: `debug/test_[solution]_isolated.py`
+- Test function logic in isolation with mock data
+- Verify edge cases, data structures, error handling
+- Output: `debug/output_test_isolated_YYYYMMDD_HHMMSS.md`
+- Purpose: Proves function logic correctness
+
+**Phase 2: FastMCP Integration Test**
+- Location: `debug/validate_[solution]_fastmcp.py`
+- Import FastMCP and wrap function as actual MCP tool
+- Inspect MCP response structure (content vs structuredContent)
+- Verify what FastMCP does with your return value
+- Output: `debug/output_validate_fastmcp_YYYYMMDD_HHMMSS.md`
+- Purpose: Proves MCP protocol layer behavior
+
+**Phase 3: Client Rendering Test**
+- Location: `debug/validate_[solution]_client.md`
+- Document manual testing with Claude Code client
+- Include screenshots or detailed descriptions of rendering
+- Verify actual end-user experience
+- Compare before/after behavior
+- Purpose: Proves issue is resolved end-to-end
+
+**Why all 3 phases?**
+- Phase 1 alone can pass while real issue persists (Agent 1 paradox)
+- Phase 2 reveals FastMCP wrapping behavior
+- Phase 3 confirms Claude Code client rendering
+- All 3 together ensure complete solution validation
 
 **Step 5: Provide Report** - See format below
 
@@ -128,9 +149,10 @@ Provide detailed structured report:
 **Solution Development**
 - **Attempted Approaches**: What was tried (even failed attempts)
 - **Successful Strategy**: What worked and why
-- **MCP Verification**:
-  - Phase 1 (MCP Context): PASS/FAIL + findings
-  - Phase 2 (Standalone): PASS/FAIL + findings
+- **Complete Stack Validation**:
+  - Phase 1 (Isolated Function): PASS/FAIL + findings
+  - Phase 2 (FastMCP Integration): PASS/FAIL + findings
+  - Phase 3 (Client Rendering): PASS/FAIL + findings
 
 **Impact Assessment**
 - **Files Requiring Changes**: Complete list with File:Line references
@@ -164,10 +186,11 @@ Before delivering report:
 
 1. **Root Cause vs Symptoms**: Did you identify actual cause or just symptoms?
 2. **Reproduction Success**: Was bug successfully reproduced in debug script?
-3. **Two-Phase Validation**: Both MCP context AND standalone validation completed?
-4. **Impact Completeness**: All affected areas (server.py, src/, .mcp.json) assessed?
-5. **CLAUDE.md Compliance**: Does fix maintain INFRASTRUCTURE/ORCHESTRATOR/FUNCTIONS pattern?
-6. **Realistic Confidence**: Are percentage estimates honest and justified?
-7. **Brutal Honesty**: If failed, did you clearly explain what didn't work and why?
+3. **Three-Phase Validation**: All 3 phases completed (Isolated + FastMCP + Client)?
+4. **End-to-End Testing**: Did you verify the complete MCP stack, not just isolated functions?
+5. **Impact Completeness**: All affected areas (server.py, src/, .mcp.json) assessed?
+6. **CLAUDE.md Compliance**: Does fix maintain INFRASTRUCTURE/ORCHESTRATOR/FUNCTIONS pattern?
+7. **Realistic Confidence**: Are percentage estimates honest and justified?
+8. **Brutal Honesty**: If failed, did you clearly explain what didn't work and why?
 
 Your goal: Deliver precise, validated solutions with honest impact assessment. If debugging fails, provide transparent analysis of what was tried and alternative explanations. Never hide failures or provide false confidence.

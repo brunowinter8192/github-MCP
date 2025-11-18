@@ -102,15 +102,3 @@ def format_tree_response(raw_tree: dict, base_path: str) -> str:
         lines.append("Showing top 50 directories and 50 files. Use path parameter to explore subdirectories.")
 
     return "\n".join(lines)
-
-
-# Filter tree items to only include depth 0 and 1
-def filter_by_depth(items: list, max_depth: int) -> list:
-    filtered = []
-
-    for item in items:
-        depth = item["path"].count("/")
-        if depth <= max_depth:
-            filtered.append(item)
-
-    return filtered

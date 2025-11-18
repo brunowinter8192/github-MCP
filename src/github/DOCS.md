@@ -1,41 +1,9 @@
-# GitHub MCP Server
+# GitHub Tools
+
 FastMCP server providing GitHub search and repository exploration tools.
 
-## Project Structure
-```
-github/
-├── server.py              # FastMCP server entry point
-├── src/                   # Tool modules
-│   ├── __init__.py        # Package marker
-│   ├── search_repos.py    # Repository search module
-│   ├── search_code.py     # Code search module
-│   ├── get_repo_tree.py   # Repository tree traversal module
-│   └── get_file_content.py # File content retrieval module
-├── README.md              # Quick start guide
-├── DOCS.md                # This documentation
-├── .mcp.json              # Active development MCPs
-├── .mcp.json.github       # Example MCP registration
-├── bug_fixes/             # Bug fix documentation
-├── debug/                 # Test scripts (gitignored)
-└── logs/                  # Log files (gitignored)
-```
+## search_repos.py
 
-## server.py
-**Purpose:** MCP server orchestrator that imports and exposes tools from all modules.
-
-### search_repos()
-Searches GitHub repositories by keywords and qualifiers. Delegates to search_repos_workflow. Returns repositories matching the query with metadata including owner, repo name, description, stars, forks, language, and update timestamp. Important: GitHub search works best with fewer keywords. Start broad (1-2 core terms), then iteratively refine with qualifiers. Too many keywords at once yields poor results.
-
-### search_code()
-Searches code across GitHub repositories. Delegates to search_code_workflow. Returns code matches with text fragments showing where search terms appear, plus repository metadata for direct file access. Important: Start with simple search terms, then narrow down. Overly specific queries return few results. Iterative refinement yields better matches.
-
-### get_repo_tree()
-Gets repository file tree structure with lazy loading. Delegates to get_repo_tree_workflow. Returns tree items limited to depth 0 and 1 if response exceeds 1000 characters, with warning message for truncated results.
-
-### get_file_content()
-Gets content of a specific file from repository. Delegates to get_file_content_workflow. Returns decoded file content with metadata including name, path, size, and SHA.
-
-## src/search_repos.py
 **Purpose:** Search GitHub repositories using the Search API.
 **Input:** query string with optional qualifiers, sort_by parameter
 **Output:** Human-readable formatted text listing 20 repositories with metadata for direct tree/file access
@@ -49,7 +17,8 @@ Performs HTTP GET request to GitHub Search Repositories API. Constructs URL with
 ### format_repo_results()
 Transforms raw API response into human-readable text output. Extracts owner, repo name, full_name, description, stars, forks, language, updated_at, and html_url from each repository. Returns formatted text string listing repositories with descriptions, language, stats, and URLs.
 
-## src/search_code.py
+## search_code.py
+
 **Purpose:** Search code across GitHub using the Code Search API with text match metadata.
 **Input:** query string with search terms and qualifiers
 **Output:** Human-readable formatted text listing 20 code matches with repository info and code fragments
@@ -66,7 +35,8 @@ Transforms raw API response into human-readable text output. Extracts repository
 ### extract_text_matches()
 Processes text_matches array from API response. Filters for matches on content and path properties. Returns list of fragment objects showing where search terms appear in the code or file path.
 
-## src/get_repo_tree.py
+## get_repo_tree.py
+
 **Purpose:** Traverse repository structure with lazy loading to handle large repositories.
 **Input:** owner, repo name, optional path for sub-tree exploration
 **Output:** Human-readable formatted text showing tree structure with truncation warning if too large
@@ -86,10 +56,8 @@ Performs HTTP GET request to GitHub Git Trees API with recursive parameter. Retu
 ### format_tree_response()
 Transforms raw tree into human-readable text output. Separates directories and files into categorized lists. Shows up to 50 directories and 50 files. Checks if formatted text exceeds MAX_TREE_CHARS (1000) and appends truncation warning if needed. Returns formatted text string displaying directory path, directories list, and files list with sizes.
 
-### filter_by_depth()
-Filters tree items by path depth. Counts slashes in path to determine depth. Returns only items where depth is less than or equal to max_depth parameter.
+## get_file_content.py
 
-## src/get_file_content.py
 **Purpose:** Retrieve and decode file content from GitHub repositories.
 **Input:** owner, repo name, file path
 **Output:** Human-readable formatted text displaying decoded file content with metadata

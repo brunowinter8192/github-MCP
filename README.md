@@ -112,4 +112,4 @@ Debug and test scripts are stored in `debug/` directories (gitignored):
 
 ## Documentation
 
-See `DOCS.md` for complete module documentation.
+Module documentation is located in `src/github/DOCS.md`.

@@ -5,11 +5,12 @@
 __pycache__/
 *.pyc
 
-# Debug and logs (matches all debug/ directories recursively)
+# Debug, logs, and bug fixes (matches all debug/ directories recursively)
 debug/
 **/debug/
 logs/
 *.log
+bug_fixes/
 
 # macOS
 .DS_Store
