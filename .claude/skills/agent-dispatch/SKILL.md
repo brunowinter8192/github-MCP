@@ -11,6 +11,16 @@ This skill is **MODULAR**:
 - **General Rules** (this section) → Apply to ALL agents
 - **Agent-Specific Sections** (below) → Only for that agent type
 
+## Agent → subagent_type Mapping
+
+| Agent | subagent_type | Model |
+|-------|---------------|-------|
+| code-investigate-specialist | `code-investigate-specialist` | Haiku |
+| claude-code-guide | `claude-code-guide` | Default |
+| github-search | `github-search` | Default |
+
+**Usage:** `Task(subagent_type="code-investigate-specialist", prompt="...")`
+
 ---
 
 # General Rules (ALL Agents)
