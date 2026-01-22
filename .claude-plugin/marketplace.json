@@ -1,0 +1,14 @@
+{
+  "name": "brunowinter-plugins",
+  "owner": {
+    "name": "Bruno Winter"
+  },
+  "plugins": [
+    {
+      "name": "github-research",
+      "source": ".",
+      "description": "GitHub research capability - search repos, code, issues, PRs",
+      "version": "1.0.0"
+    }
+  ]
+}
