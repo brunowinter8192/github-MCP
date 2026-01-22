@@ -151,9 +151,26 @@ Returns list of changed files with filename, status (added/modified/removed), ad
 
 Environment variable: `GITHUB_TOKEN` (optional, for higher rate limits)
 
-### MCP Registration
+### Installation als Plugin
 
-Add to your project's `.mcp.json`:
+1. Marketplace hinzufuegen:
+```shell
+/plugin marketplace add brunowinter8192/github-MCP
+```
+
+2. Plugin installieren:
+```shell
+/plugin install github-research@brunowinter-plugins
+```
+
+3. Skill verwenden:
+```shell
+/github-research:github
+```
+
+### MCP Registration (Alternative)
+
+Fuer manuelle MCP-Registrierung in `.mcp.json`:
 ```json
 {
   "mcpServers": {

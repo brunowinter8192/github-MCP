@@ -70,3 +70,114 @@ Performs HTTP GET request to GitHub Contents API for specific file path. Returns
 
 ### format_file_response()
 Validates response type is "file" (not directory). Decodes base64 content to UTF-8 string after removing newlines from base64 string. Raises ValueError if path is not a file. Returns formatted text string displaying file metadata (name, path, size, URL) followed by separator and decoded content.
+
+## search_issues.py
+
+**Purpose:** Search GitHub issues using the Search Issues API.
+**Input:** query string with optional qualifiers, sort_by parameter
+**Output:** Human-readable formatted text listing 20 issues with metadata for direct issue access
+
+### search_issues_workflow()
+Main orchestrator that coordinates issue search. Builds query with is:issue qualifier by default, calls fetch_issues to get raw API data, then format_issue_results to extract relevant fields. Returns formatted text string with issue listings.
+
+### build_query()
+Adds is:issue qualifier to search query if not already present. Allows explicit is:pr to include pull requests. Returns modified query string.
+
+### fetch_issues()
+Performs HTTP GET request to GitHub Search Issues API. Constructs URL with query parameters for search term, sort order, and pagination. Sets appropriate headers for API version. Returns raw JSON response.
+
+### format_issue_results()
+Transforms raw API response into human-readable text output. Extracts repository info from repository_url, issue number, title, state, author, comments count, labels, and html_url from each issue. Returns formatted text string listing issues with metadata and tool hints for direct access.
+
+## get_issue.py
+
+**Purpose:** Retrieve full issue details including body content.
+**Input:** owner, repo name, issue_number
+**Output:** Human-readable formatted text displaying issue with title, metadata, and full body
+
+### get_issue_workflow()
+Main orchestrator that coordinates single issue retrieval. Calls fetch_issue to get raw API data, then format_issue to structure the output. Returns formatted text string with complete issue details.
+
+### fetch_issue()
+Performs HTTP GET request to GitHub Issues API for specific issue number. Returns raw JSON response containing full issue data including body.
+
+### format_issue()
+Transforms raw API response into human-readable text output. Displays title, state, author, dates, labels, comments count, and URL. Includes hint for get_issue_comments if comments exist. Appends full issue body after separator.
+
+## get_issue_comments.py
+
+**Purpose:** Retrieve all comments on a GitHub issue.
+**Input:** owner, repo name, issue_number
+**Output:** Human-readable formatted text listing all comments with author and content
+
+### get_issue_comments_workflow()
+Main orchestrator that coordinates comments retrieval. Calls fetch_comments to get raw API data, then format_comments to structure the output. Returns formatted text string with all comments.
+
+### fetch_comments()
+Performs HTTP GET request to GitHub Issue Comments API. Returns array of comment objects with user, body, and created_at fields.
+
+### format_comments()
+Transforms raw API response into human-readable text output. Lists total comment count, then each comment with author, date, and full body. Returns formatted text string displaying discussion thread.
+
+## search_prs.py
+
+**Purpose:** Search GitHub pull requests using the Search Issues API with is:pr qualifier.
+**Input:** query string with optional qualifiers, sort_by parameter
+**Output:** Human-readable formatted text listing 20 PRs with metadata for direct PR access
+
+### search_prs_workflow()
+Main orchestrator that coordinates PR search. Builds query with is:pr qualifier, calls fetch_prs to get raw API data, then format_pr_results to extract relevant fields. Returns formatted text string with PR listings.
+
+### build_query()
+Adds is:pr qualifier to search query if not already present. Replaces is:issue with is:pr if found. Returns modified query string.
+
+### fetch_prs()
+Performs HTTP GET request to GitHub Search Issues API. Constructs URL with query parameters for search term, sort order, and pagination. Returns raw JSON response.
+
+### format_pr_results()
+Transforms raw API response into human-readable text output. Extracts repository info, PR number, title, state (including MERGED detection), author, comments count, labels, and html_url. Returns formatted text string with tool hints for direct access.
+
+## list_repo_prs.py
+
+**Purpose:** List pull requests in a specific repository using the Pulls API.
+**Input:** owner, repo name, state filter, sort_by parameter
+**Output:** Human-readable formatted text listing PRs in the repository with branch info
+
+### list_repo_prs_workflow()
+Main orchestrator that coordinates repository PR listing. Calls fetch_repo_prs to get raw API data, then format_pr_list to structure the output. Returns formatted text string with PR list.
+
+### fetch_repo_prs()
+Performs HTTP GET request to GitHub Pulls API for repository. Applies state and sort filters. Returns array of PR objects.
+
+### format_pr_list()
+Transforms raw API response into human-readable text output. Displays PR number, title, state, author, source and target branches, creation date, labels, and URL. Includes tool hints for get_pr access.
+
+## get_pr.py
+
+**Purpose:** Retrieve full pull request details including body content and statistics.
+**Input:** owner, repo name, pull_number
+**Output:** Human-readable formatted text displaying PR with title, metadata, stats, and full body
+
+### get_pr_workflow()
+Main orchestrator that coordinates single PR retrieval. Calls fetch_pr to get raw API data, then format_pr to structure the output. Returns formatted text string with complete PR details.
+
+### fetch_pr()
+Performs HTTP GET request to GitHub Pulls API for specific PR number. Returns raw JSON response containing full PR data including body, commits, additions, deletions.
+
+### format_pr()
+Transforms raw API response into human-readable text output. Displays title, state (including MERGED detection), author, branches, dates, merge info, labels, commit count, additions, deletions, changed files count, and mergeable status. Includes hint for get_pr_files. Appends full PR body after separator.
+
+## get_pr_files.py
+
+**Purpose:** Retrieve list of files changed in a pull request.
+**Input:** owner, repo name, pull_number
+**Output:** Human-readable formatted text listing all changed files with diff statistics
+
+### get_pr_files_workflow()
+Main orchestrator that coordinates PR files retrieval. Calls fetch_pr_files to get raw API data, then format_pr_files to structure the output. Returns formatted text string with file list.
+
+### fetch_pr_files()
+Performs HTTP GET request to GitHub Pulls Files API. Returns array of file objects with filename, status, additions, deletions, and patch.
+
+### format_pr_files()
+Transforms raw API response into human-readable text output. Calculates total additions and deletions. Lists each file with status icon, filename, change counts, and truncated patch preview. Shows renamed files with previous filename.

@@ -17,7 +17,6 @@ This skill is **MODULAR**:
 |-------|---------------|-------|
 | code-investigate-specialist | `code-investigate-specialist` | Haiku |
 | claude-code-guide | `claude-code-guide` | Default |
-| github-search | `github-search` | Default |
 
 **Usage:** `Task(subagent_type="code-investigate-specialist", prompt="...")`
 
