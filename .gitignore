@@ -20,6 +20,7 @@ bug_fixes/
 .claude/
 .beads/
 CLAUDE.md
+.mcp.json
 
 # Plugin content (symlinked from .claude-plugin/)
 skills/
