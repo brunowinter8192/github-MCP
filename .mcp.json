@@ -8,10 +8,7 @@
         "fastmcp",
         "run",
         "./server.py"
-      ],
-      "env": {
-        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
-      }
+      ]
     }
   }
 }
