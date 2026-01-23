@@ -19,6 +19,7 @@ bug_fixes/
 # Claude Code local (not for distribution)
 .claude/
 .beads/
+CLAUDE.md
 
 # Plugin content (symlinked from .claude-plugin/)
 skills/
