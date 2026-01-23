@@ -7,7 +7,7 @@
         "--with", "python-dotenv",
         "fastmcp",
         "run",
-        "./server.py"
+        "${CLAUDE_PLUGIN_ROOT}/server.py"
       ],
       "env": {
         "GITHUB_TOKEN": "${GITHUB_TOKEN}"
