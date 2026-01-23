@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "github-research",
-      "source": ".",
+      "source": "..",
       "description": "GitHub research capability - search repos, code, issues, PRs",
       "version": "1.0.0"
     }
