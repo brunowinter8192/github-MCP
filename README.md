@@ -1,229 +1,105 @@
-# GitHub MCP Server
+# GitHub Research Plugin
 
-GitHub API tools for code discovery and repository exploration.
-
-**Remote:** https://github.com/brunowinter8192/github-MCP
-
-After major changes, push to remote:
-```bash
-git add -A && git commit -m "Your message" && git push
-```
-
-## Prerequisites
-
-- Python 3.10+
-- [uv](https://docs.astral.sh/uv/) (for uvx)
-- GitHub Personal Access Token (optional, increases rate limits)
+GitHub API tools for Claude Code - search repos, code, issues, PRs.
 
 ## Quick Start
 
-1. Set environment variable (optional):
+1. Add marketplace:
 ```bash
-export GITHUB_TOKEN=your_token_here
-```
-
-2. Run MCP server (via uvx - no manual install needed):
-```bash
-uvx --with requests --with python-dotenv fastmcp run server.py
-```
-
-Dependencies (fastmcp, requests, python-dotenv) are installed automatically by uvx.
-
-## Tools
-
-### search_repos
-Find repositories by query with GitHub qualifiers.
-
-Parameters:
-- `query`: Search string with qualifiers (e.g., 'machine learning stars:>100 language:python')
-- `sort_by`: stars | forks | updated | best_match (default: best_match)
-
-Returns repositories with owner, repo name, description, stars, URL as formatted JSON string.
-
-**Search Strategy:** Start with 1-2 core keywords (e.g., 'html parser'), check results, then refine by adding qualifiers (language:python, stars:>100). Too many keywords at once yields poor results. Iterate: broad query first, then progressively more specific.
-
-### search_code
-Search code across GitHub repositories.
-
-Parameters:
-- `query`: Code search query (e.g., 'def train_model language:python repo:tensorflow/tensorflow')
-
-Returns code matches with repository info, file path, and text matches as formatted JSON string.
-
-**Search Strategy:** Start with simple search terms (e.g., 'parse_html language:python'), then narrow down. Overly specific queries return few results. Iterative refinement yields better matches.
-
-### get_repo_tree
-Explore repository file structure.
-
-Parameters:
-- `owner`: Repository owner (e.g., 'octocat')
-- `repo`: Repository name (e.g., 'Hello-World')
-- `path`: Path to explore (default: root)
-
-Returns tree structure with files and directories.
-
-### get_file_content
-Read specific file content from repository.
-
-Parameters:
-- `owner`: Repository owner
-- `repo`: Repository name
-- `path`: File path (e.g., 'src/main.py')
-
-Returns file content with metadata.
-
-### search_issues
-Search GitHub issues and discussions.
-
-Parameters:
-- `query`: Search string with qualifiers (e.g., 'authentication bug repo:owner/repo state:open')
-- `sort_by`: comments | reactions | created | updated | best_match (default: best_match)
-
-Returns issues with repository, number, title, state, author, comments count, labels, and URL.
-
-**Note:** By default only searches issues (not PRs). Add 'is:pr' to include pull requests. Use repo:owner/repo to search specific repository.
-
-### get_issue
-Read a specific issue with full body content.
-
-Parameters:
-- `owner`: Repository owner (e.g., 'anthropics')
-- `repo`: Repository name (e.g., 'claude-code')
-- `issue_number`: Issue number (e.g., 11712)
-
-Returns issue title, state, author, dates, labels, comments count, URL, and full body content.
-
-### get_issue_comments
-Read all comments on an issue.
-
-Parameters:
-- `owner`: Repository owner
-- `repo`: Repository name
-- `issue_number`: Issue number
-
-Returns list of comments with author, date, and full body content.
-
-### search_prs
-Search pull requests across GitHub.
-
-Parameters:
-- `query`: Search string with qualifiers (e.g., 'fix authentication repo:owner/repo is:merged')
-- `sort_by`: comments | reactions | created | updated | best_match (default: best_match)
-
-Returns PRs with repository, number, title, state, author, comments count, labels, and URL.
-
-**Note:** Searches PRs globally. Use repo:owner/repo to search specific repository. Use is:merged to find completed PRs.
-
-### list_repo_prs
-List pull requests in a specific repository.
-
-Parameters:
-- `owner`: Repository owner (e.g., 'facebook')
-- `repo`: Repository name (e.g., 'react')
-- `state`: open | closed | all (default: open)
-- `sort_by`: created | updated | popularity | long-running (default: created)
-
-Returns PRs with number, title, state, author, branches, creation date, labels, and URL.
-
-### get_pr
-Read a specific pull request with full body content.
-
-Parameters:
-- `owner`: Repository owner
-- `repo`: Repository name
-- `pull_number`: Pull request number
-
-Returns PR title, state, author, branches, dates, merge info, commits, additions, deletions, changed files, and full body content.
-
-### get_pr_files
-List files changed in a pull request.
-
-Parameters:
-- `owner`: Repository owner
-- `repo`: Repository name
-- `pull_number`: Pull request number
-
-Returns list of changed files with filename, status (added/modified/removed), additions, deletions, and patch preview.
-
-## Configuration
-
-Environment variable: `GITHUB_TOKEN` (optional, for higher rate limits)
-
-### Installation als Plugin
-
-1. Marketplace hinzufuegen:
-```shell
 /plugin marketplace add brunowinter8192/github-MCP
 ```
 
-2. Plugin installieren:
-```shell
+2. Install plugin:
+```bash
 /plugin install github-research@brunowinter-plugins
 ```
 
-3. Skill verwenden:
-```shell
-/github-research:github
-```
+3. Done. Plugin activates automatically on GitHub-related queries.
 
-### MCP Registration (Alternative)
+## Plugin Components
 
-Fuer manuelle MCP-Registrierung in `.mcp.json`:
+| Component | Description |
+|-----------|-------------|
+| **Skill** | `/github-research:github` - Tool usage context and workflows |
+| **MCP Server** | 11 GitHub API tools |
+| **Hook** | Auto-activates skill on keywords (github, repo, PR, issue) |
+| **Subagent** | `github-search` - Deep research specialist |
+
+## Tools
+
+| Tool | Purpose |
+|------|---------|
+| `search_repos` | Find repositories |
+| `search_code` | Find code snippets |
+| `get_repo_tree` | Browse repo structure |
+| `get_file_content` | Read file content |
+| `search_issues` | Find issues |
+| `get_issue` | Get issue details |
+| `get_issue_comments` | Get issue comments |
+| `search_prs` | Find pull requests |
+| `list_repo_prs` | List repo PRs |
+| `get_pr` | Get PR details |
+| `get_pr_files` | Get PR changed files |
+
+## Component Details
+
+### Skill
+
+- **Manual:** `/github-research:github`
+- **Auto:** Hook triggers on GitHub keywords
+- **Content:** Tool context, workflows, when-to-use guidance
+
+### MCP Server
+
+- 11 read-only GitHub API tools
+- **Optional:** `GITHUB_TOKEN` env var for higher rate limits
+
+### Hook
+
+- **Keywords:** github, GitHub, repo, repository, PR, pull request, issue
+- **Action:** Activates skill automatically
+
+### Subagent
+
+- **Type:** `github-search`
+- **Use for:** Complex multi-tool research, comparing repos
+- **Skip for:** Single tool calls, known owner/repo
+
+## MCP Registration (Alternative)
+
+Manual registration without plugin in `.mcp.json`:
+
 ```json
 {
   "mcpServers": {
     "github": {
       "command": "uvx",
-      "args": [
-        "--with", "requests",
-        "--with", "python-dotenv",
-        "fastmcp",
-        "run",
-        "/path/to/github/server.py"
-      ],
-      "env": {
-        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
-      }
+      "args": ["--with", "requests", "--with", "python-dotenv", "fastmcp", "run", "/absolute/path/to/server.py"],
+      "env": { "GITHUB_TOKEN": "${GITHUB_TOKEN}" }
     }
   }
 }
 ```
 
-### Local Plugin Development
+## Directory Structure
 
-Test the plugin locally without installation:
-```bash
-claude --plugin-dir /path/to/github
 ```
-
-The `${CLAUDE_PLUGIN_ROOT}` variable is automatically set when the plugin is loaded, resolving paths in `.mcp.json`.
-
-### Auto-Sync Pre-commit Hook
-
-Plugin content lives in two places:
-- `.claude/` - Your working directory (edit here)
-- `.claude-plugin/` - Plugin distribution (auto-synced)
-
-A Git pre-commit hook automatically syncs changes from `.claude/` to `.claude-plugin/` before each commit.
-
-The hook is in `.git/hooks/pre-commit` and syncs:
-- `.claude/agents/` -> `.claude-plugin/agents/`
-- `.claude/skills/` -> `.claude-plugin/skills/`
-- `.claude/hooks/` -> `.claude-plugin/hooks/`
-
-## Bug Fixes
-
-Bug fix documentation is stored in `bug_fixes/` directory. Each fix is documented with:
-- Problem description
-- Root cause analysis
-- Fix implementation with file:line references
-
-## Debug Scripts
-
-Debug and test scripts are stored in `debug/` directories (gitignored):
-- **Simple MCP:** Root-level `debug/` folder
-- **Complex MCP:** Per-module `src/[module]/debug/` folders for multi-API-domain servers
+github/
+├── .claude-plugin/           # Plugin distribution
+│   ├── plugin.json           # Plugin metadata
+│   ├── marketplace.json      # Marketplace entry
+│   ├── skills/github/SKILL.md
+│   ├── agents/github-search.md
+│   └── hooks/hooks.json
+├── server.py                 # MCP entry point
+└── src/github/               # Tool implementations
+    └── DOCS.md
+```
 
 ## Documentation
 
-Module documentation is located in `src/github/DOCS.md`.
+| Doc | Content |
+|-----|---------|
+| `src/github/DOCS.md` | Tool implementation details |
+| `.claude-plugin/skills/github/SKILL.md` | Tool usage guide |
+| `.claude-plugin/agents/github-search.md` | Subagent instructions |
