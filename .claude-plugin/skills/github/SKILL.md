@@ -234,38 +234,4 @@ Get list of files changed in a pull request.
 mcp__github__get_pr_files(owner="anthropics", repo="claude-code", pull_number=456)
 ```
 
----
-
-## When to Use
-
-**Use GitHub tools when:**
-- User asks to find repositories, libraries, or frameworks
-- User needs code examples or implementation patterns
-- User wants to explore a repository structure
-- User asks about issues or PRs in a project
-- Researching how others solved a problem
-
-**Do NOT use when:**
-- Information is in local codebase (use Grep/Read)
-- User asks about general programming concepts (use training data)
-- User wants to create/modify GitHub content (these tools are read-only)
-
----
-
-## Typical Workflows
-
-### Find and explore a library
-1. `search_repos` - Find candidates
-2. `get_repo_tree` - Browse structure
-3. `get_file_content` - Read specific files
-
-### Research an issue
-1. `search_issues` - Find relevant issues
-2. `get_issue` - Get details
-3. `get_issue_comments` - Read discussion
-
-### Review a PR
-1. `get_pr` - Get PR details
-2. `get_pr_files` - See changed files
-3. `get_file_content` - Read specific changes
 
