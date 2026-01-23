@@ -1,10 +1,11 @@
 # INFRASTRUCTURE
 from typing import Literal
+from pathlib import Path
 from fastmcp import FastMCP
 from dotenv import load_dotenv
 from mcp.types import TextContent
 
-load_dotenv()
+load_dotenv(Path(__file__).parent / ".env")
 
 from src.github.search_repos import search_repos_workflow
 from src.github.search_code import search_code_workflow
