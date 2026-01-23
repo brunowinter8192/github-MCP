@@ -8,5 +8,6 @@
   "repository": "https://github.com/brunowinter8192/github-MCP",
   "keywords": ["github", "research", "mcp", "search"],
   "skills": "./.claude/skills/github/",
+  "agents": "./.claude/agents/",
   "hooks": "./.claude/hooks/hooks.json"
 }
