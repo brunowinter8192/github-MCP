@@ -8,10 +8,7 @@
         "fastmcp",
         "run",
         "/Users/brunowinter2000/Documents/ai/Meta/ClaudeCode/MCP/github/server.py"
-      ],
-      "env": {
-        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
-      }
+      ]
     }
   }
 }
