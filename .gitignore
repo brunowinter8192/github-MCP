@@ -24,3 +24,6 @@ bug_fixes/
 skills/
 agents/
 hooks/
+
+# API documentation (local reference)
+APIEndpoints/
