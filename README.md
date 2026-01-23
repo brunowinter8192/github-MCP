@@ -12,24 +12,22 @@ git add -A && git commit -m "Your message" && git push
 ## Prerequisites
 
 - Python 3.10+
+- [uv](https://docs.astral.sh/uv/) (for uvx)
 - GitHub Personal Access Token (optional, increases rate limits)
 
 ## Quick Start
 
-1. Install dependencies:
-```bash
-pip install fastmcp requests pydantic python-dotenv
-```
-
-2. Set environment variable (optional):
+1. Set environment variable (optional):
 ```bash
 export GITHUB_TOKEN=your_token_here
 ```
 
-3. Run MCP server:
+2. Run MCP server (via uvx - no manual install needed):
 ```bash
-fastmcp run server.py
+uvx --with requests --with python-dotenv fastmcp run server.py
 ```
+
+Dependencies (fastmcp, requests, python-dotenv) are installed automatically by uvx.
 
 ## Tools
 
@@ -175,8 +173,14 @@ Fuer manuelle MCP-Registrierung in `.mcp.json`:
 {
   "mcpServers": {
     "github": {
-      "command": "/path/to/venv/bin/fastmcp",
-      "args": ["run", "/path/to/github/server.py"],
+      "command": "uvx",
+      "args": [
+        "--with", "requests",
+        "--with", "python-dotenv",
+        "fastmcp",
+        "run",
+        "/path/to/github/server.py"
+      ],
       "env": {
         "GITHUB_TOKEN": "${GITHUB_TOKEN}"
       }
@@ -184,6 +188,15 @@ Fuer manuelle MCP-Registrierung in `.mcp.json`:
   }
 }
 ```
+
+### Local Plugin Development
+
+Test the plugin locally without installation:
+```bash
+claude --plugin-dir /path/to/github
+```
+
+The `${CLAUDE_PLUGIN_ROOT}` variable is automatically set when the plugin is loaded, resolving paths in `.mcp.json`.
 
 ## Bug Fixes
 
