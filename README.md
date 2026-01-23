@@ -198,6 +198,19 @@ claude --plugin-dir /path/to/github
 
 The `${CLAUDE_PLUGIN_ROOT}` variable is automatically set when the plugin is loaded, resolving paths in `.mcp.json`.
 
+### Auto-Sync Pre-commit Hook
+
+Plugin content lives in two places:
+- `.claude/` - Your working directory (edit here)
+- `.claude-plugin/` - Plugin distribution (auto-synced)
+
+A Git pre-commit hook automatically syncs changes from `.claude/` to `.claude-plugin/` before each commit.
+
+The hook is in `.git/hooks/pre-commit` and syncs:
+- `.claude/agents/` -> `.claude-plugin/agents/`
+- `.claude/skills/` -> `.claude-plugin/skills/`
+- `.claude/hooks/` -> `.claude-plugin/hooks/`
+
 ## Bug Fixes
 
 Bug fix documentation is stored in `bug_fixes/` directory. Each fix is documented with:
