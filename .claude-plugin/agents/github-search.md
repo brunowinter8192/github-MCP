@@ -1,4 +1,5 @@
 ---
+name: github-search
 description: GitHub search specialist using MCP tools. Searches repos, code, issues, PRs across GitHub.
 model: haiku
 skills:
