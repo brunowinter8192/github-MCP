@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/brunowinter8192/github-MCP",
   "keywords": ["github", "research", "mcp", "search"],
-  "skills": "../skills/github/",
-  "agents": "../agents/github-search.md",
-  "hooks": "../hooks/hooks.json"
+  "skills": "./skills/github/",
+  "agents": "./agents/github-search.md",
+  "hooks": "./hooks/hooks.json"
 }
