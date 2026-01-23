@@ -4,8 +4,9 @@
 # Python
 __pycache__/
 *.pyc
+venv/
 
-# Debug, logs, and bug fixes (matches all debug/ directories recursively)
+# Debug, logs, and bug fixes
 debug/
 **/debug/
 logs/
@@ -14,3 +15,15 @@ bug_fixes/
 
 # macOS
 .DS_Store
+
+# Local Claude settings (not for distribution)
+.claude/settings.local.json
+.claude/plans/
+.beads/
+
+# Skills not part of plugin
+.claude/skills/iterative-dev/
+.claude/skills/agent-dispatch/
+
+# Agents not for distribution
+.claude/agents/explore-specialist.md
