@@ -14,15 +14,14 @@ GitHub API tools for Claude Code - search repos, code, issues, PRs.
 /plugin install github-research@brunowinter-plugins
 ```
 
-3. Done. Plugin activates automatically on GitHub-related queries.
+3. Activate: Type `ghs` in prompt or `/github-research:gh-search`
 
 ## Plugin Components
 
 | Component | Description |
 |-----------|-------------|
-| **Skill** | `/github-research:github` - Tool usage context and workflows |
+| **Skill** | `/github-research:gh-search` - Tool usage context and workflows |
 | **MCP Server** | 11 GitHub API tools |
-| **Hook** | Auto-activates skill on keywords (github, repo, PR, issue) |
 | **Subagent** | `github-search` - Deep research specialist |
 
 ## Tools
@@ -45,19 +44,14 @@ GitHub API tools for Claude Code - search repos, code, issues, PRs.
 
 ### Skill
 
-- **Manual:** `/github-research:github`
-- **Auto:** Hook triggers on GitHub keywords
+- **Trigger:** `ghs` in prompt
+- **Manual:** `/github-research:gh-search`
 - **Content:** Tool context, workflows, when-to-use guidance
 
 ### MCP Server
 
 - 11 read-only GitHub API tools
 - **Optional:** `GITHUB_TOKEN` env var for higher rate limits
-
-### Hook
-
-- **Keywords:** github, GitHub, repo, repository, PR, pull request, issue
-- **Action:** Activates skill automatically
 
 ### Subagent
 
@@ -89,8 +83,7 @@ github/
 │   ├── plugin.json           # Plugin metadata
 │   ├── marketplace.json      # Marketplace entry
 │   ├── skills/github/SKILL.md
-│   ├── agents/github-search.md
-│   └── hooks/hooks.json
+│   └── agents/github-search.md
 ├── server.py                 # MCP entry point
 └── src/github/               # Tool implementations
     └── DOCS.md
