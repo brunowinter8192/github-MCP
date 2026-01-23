@@ -1,1 +1,13 @@
-../../.claude/hooks/hooks.json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "github|GitHub|repo|repository|PR|pull request|issue",
+        "hooks": [{
+          "type": "command",
+          "command": "echo 'Activate Skill(\"github-research:github\")'"
+        }]
+      }
+    ]
+  }
+}
