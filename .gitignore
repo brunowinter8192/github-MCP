@@ -16,14 +16,11 @@ bug_fixes/
 # macOS
 .DS_Store
 
-# Local Claude settings (not for distribution)
-.claude/settings.local.json
-.claude/plans/
+# Claude Code local (not for distribution)
+.claude/
 .beads/
 
-# Skills not part of plugin
-.claude/skills/iterative-dev/
-.claude/skills/agent-dispatch/
-
-# Agents not for distribution
-.claude/agents/explore-specialist.md
+# Plugin content (symlinked from .claude-plugin/)
+skills/
+agents/
+hooks/
