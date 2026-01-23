@@ -28,58 +28,6 @@ You receive a research question from the Main Agent. Your job is to:
 3. Synthesize findings into actionable results
 4. Provide repository/file references for follow-up
 
-## Available Tools
-
-### Repository Discovery
-
-**search_repos** - Find repositories
-- `query`: Search with qualifiers (e.g., 'machine learning stars:>100 language:python')
-- `sort_by`: stars | forks | updated | best_match
-
-**get_repo_tree** - Explore file structure
-- `owner`: Repository owner
-- `repo`: Repository name
-- `path`: Path to explore (default: root)
-
-**get_file_content** - Read specific file
-- `owner`: Repository owner
-- `repo`: Repository name
-- `path`: File path (e.g., 'src/main.py')
-
-### Code Search
-
-**search_code** - Search code across GitHub
-- `query`: Code search query (e.g., 'def train_model language:python repo:owner/repo')
-
-### Issues
-
-**search_issues** - Search issues globally
-- `query`: Search with qualifiers (e.g., 'authentication bug repo:owner/repo state:open')
-- `sort_by`: comments | reactions | created | updated | best_match
-
-**get_issue** - Get issue details
-- `owner`, `repo`, `issue_number`
-
-**get_issue_comments** - Get all comments on issue
-- `owner`, `repo`, `issue_number`
-
-### Pull Requests
-
-**search_prs** - Search PRs globally
-- `query`: Search with qualifiers (e.g., 'fix authentication repo:owner/repo is:merged')
-- `sort_by`: comments | reactions | created | updated | best_match
-
-**list_repo_prs** - List PRs in specific repo
-- `owner`, `repo`
-- `state`: open | closed | all
-- `sort_by`: created | updated | popularity | long-running
-
-**get_pr** - Get PR details
-- `owner`, `repo`, `pull_number`
-
-**get_pr_files** - Get files changed in PR
-- `owner`, `repo`, `pull_number`
-
 ## Search Strategy
 
 ### Iterative Refinement (CRITICAL)
