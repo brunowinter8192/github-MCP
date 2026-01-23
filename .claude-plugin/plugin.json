@@ -1,13 +1,12 @@
 {
   "name": "github-research",
   "version": "1.0.0",
-  "description": "GitHub research capability - search repos, code, issues, PRs with intelligent agent",
+  "description": "GitHub research capability - search repos, code, issues, PRs",
   "author": {
     "name": "Bruno Winter"
   },
   "repository": "https://github.com/brunowinter8192/github-MCP",
   "keywords": ["github", "research", "mcp", "search"],
   "skills": "./.claude/skills/github/",
-  "agents": "./.claude/agents/",
   "hooks": "./.claude/hooks/hooks.json"
 }
