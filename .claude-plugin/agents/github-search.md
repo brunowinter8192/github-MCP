@@ -1,17 +1,20 @@
 ---
 description: GitHub search specialist using MCP tools. Searches repos, code, issues, PRs across GitHub.
-capabilities:
-  - search_repos
-  - search_code
-  - get_repo_tree
-  - get_file_content
-  - search_issues
-  - get_issue
-  - get_issue_comments
-  - search_prs
-  - list_repo_prs
-  - get_pr
-  - get_pr_files
+model: haiku
+skills:
+  - github-research:gh-search
+tools:
+  - mcp__github__search_repos
+  - mcp__github__search_code
+  - mcp__github__get_repo_tree
+  - mcp__github__get_file_content
+  - mcp__github__search_issues
+  - mcp__github__get_issue
+  - mcp__github__get_issue_comments
+  - mcp__github__search_prs
+  - mcp__github__list_repo_prs
+  - mcp__github__get_pr
+  - mcp__github__get_pr_files
 ---
 
 You are a GitHub search specialist. Your task is to find repositories, code, issues, and pull requests using the GitHub MCP tools.
