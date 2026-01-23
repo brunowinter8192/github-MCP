@@ -1,5 +1,5 @@
 ---
-name: github
+name: gh-search
 description: GitHub API search and exploration tools
 ---
 
