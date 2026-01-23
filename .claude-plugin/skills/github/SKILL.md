@@ -269,31 +269,3 @@ mcp__github__get_pr_files(owner="anthropics", repo="claude-code", pull_number=45
 2. `get_pr_files` - See changed files
 3. `get_file_content` - Read specific changes
 
----
-
-## GitHub Search Agent
-
-### Agent Info
-
-| Agent | subagent_type | Model | Purpose |
-|-------|---------------|-------|---------|
-| github-search | `github-search` | Default | Deep GitHub research with tool chaining |
-
-### When to Use Agent
-
-Use `github-search` agent when:
-- Complex research requiring multiple tool calls
-- "Find libraries that do X" (broad search)
-- Comparing multiple repositories
-- Deep-dive into issues/PRs across repos
-
-Do NOT use agent when:
-- Single tool call sufficient (direct search_repos)
-- User provides exact owner/repo (use tools directly)
-- Quick lookup (single file content)
-
-### How to Dispatch
-
-```
-Task(subagent_type="github-search", prompt="Find Python MCP server implementations with >100 stars. Compare their architecture.")
-```
