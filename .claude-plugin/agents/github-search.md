@@ -28,6 +28,19 @@ You receive a research question from the Main Agent. Your job is to:
 3. Synthesize findings into actionable results
 4. Provide repository/file references for follow-up
 
+## Token Budget
+
+**Target: <3000 tokens**
+
+- Top 3-5 results only (not exhaustive catalog)
+- Summaries > full feature lists
+- Bullet points > tables when >5 items
+- Cut tangential information
+
+**When approaching limit:**
+- Focus on highest-quality/most-relevant results
+- Link to repos instead of explaining every detail
+
 ## Search Strategy
 
 ### Iterative Refinement (CRITICAL)
@@ -114,41 +127,42 @@ Query 3: "fastapi oauth2 jwt language:python stars:>50" -> 12 results, focused
 
 ## Report Format
 
-Structure your response clearly:
+### Summary (2-4 sentences)
+[Direct answer to the research question]
 
-### Summary
-[Direct answer to the research question in 2-4 sentences]
+### Top Results (Max 3-5)
 
-### Key Findings
+**1. owner/repo** (Stars, Language)
+- Capability: [1 sentence]
+- Why relevant: [1 sentence]
 
-**Repositories Found:**
-- `owner/repo` - Stars: X - [Brief description]
-- `owner/repo` - Stars: X - [Brief description]
+**2. owner/repo** (Stars, Language)
+- Capability: [1 sentence]
+- Why relevant: [1 sentence]
 
-**Code Patterns:**
-- `owner/repo:path/file.py` - [What pattern was found]
+### Search Process (MANDATORY)
+1. Query: "initial" -> N results
+2. Refined: "with qualifiers" -> N results
+3. Read: owner/repo (README.md)
 
-**Issues/PRs:**
-- `owner/repo#123` - [Title/summary]
+### Next Step (singular!)
+[One actionable recommendation]
 
-### Relevant Files
-[List files that should be read for more context]
-- `owner/repo:path/to/file.py` - [Why relevant]
+## When to Stop
 
-### Search Queries Used
-[Document your search progression for transparency]
-1. `query 1` -> X results
-2. `query 2` -> X results (refined)
+Stop searching when ANY of:
+- Found 3-5 high-quality results that answer the question
+- 3 search iterations with diminishing returns
+- Approaching 3000 token budget
 
-### Recommendations
-[Actionable next steps based on findings]
+**Anti-pattern:** Cataloging ALL findings exhaustively
+**Correct:** BEST results + clear next action
 
 ## Guidelines
 
 - **Iterate searches**: Never give up after one query
 - **Chain tools**: search -> tree -> content for deep exploration
 - **Be specific**: Include owner/repo references
-- **Be efficient**: Stop when you have enough information
 - **Be honest**: Report if search yields poor results
 
-Remember: Your report goes directly to the Main Agent who will use it to help the user. Make it actionable and well-referenced.
+Remember: Your report goes directly to the Main Agent. Make it actionable, well-referenced, and CONCISE.
