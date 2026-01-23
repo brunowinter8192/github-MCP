@@ -234,4 +234,35 @@ Get list of files changed in a pull request.
 mcp__github__get_pr_files(owner="anthropics", repo="claude-code", pull_number=456)
 ```
 
+---
+
+## Usage Strategy
+
+### Tool Selection
+
+| Goal | Primary Tool | Secondary |
+|------|--------------|-----------|
+| Find projects by topic | search_repos | - |
+| Find code patterns | search_code | get_file_content |
+| Understand structure | get_repo_tree | get_file_content |
+| Compare projects | search_repos | get_file_content (README) |
+
+### Reading Priority (per repository)
+
+1. **README.md** - Overview, features, usage
+2. **package.json / pyproject.toml** - Dependencies, metadata
+3. **docs/ or examples/** - Usage patterns
+4. **src/** - Only if critical to answer question
+
+### Result Limits
+
+**search_repos / search_code:**
+- Fetch: Top 10-15 results
+- Read in depth: Top 3-5
+- Skim rest: Only for outliers
+
+**Files per repo:**
+- Max 3-4 files (README + key sources)
+- Use get_repo_tree first to identify critical files
+
 
