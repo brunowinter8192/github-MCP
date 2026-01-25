@@ -57,11 +57,15 @@ def format_repo_results(raw_response: dict) -> str:
         stars = repo["stargazers_count"]
         forks = repo["forks_count"]
         lang = repo.get("language", "Unknown")
+        topics = repo.get("topics") or []
         url = repo["html_url"]
+
+        topics_str = ", ".join(topics[:5]) if topics else "None"
 
         lines.append(f"{idx}. {full_name}")
         lines.append(f"   Description: {desc}")
         lines.append(f"   Language: {lang} | Stars: {stars:,} | Forks: {forks:,}")
+        lines.append(f"   Topics: {topics_str}")
         lines.append(f"   URL: {url}")
         lines.append("")
 

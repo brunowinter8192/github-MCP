@@ -18,6 +18,10 @@ from src.github.search_prs import search_prs_workflow
 from src.github.list_repo_prs import list_repo_prs_workflow
 from src.github.get_pr import get_pr_workflow
 from src.github.get_pr_files import get_pr_files_workflow
+from src.github.get_repo import get_repo_workflow
+from src.github.search_discussions import search_discussions_workflow
+from src.github.list_discussions import list_discussions_workflow
+from src.github.get_discussion import get_discussion_workflow
 
 mcp = FastMCP("GitHub")
 
@@ -102,6 +106,42 @@ def get_pr(owner: str, repo: str, pull_number: int) -> list[TextContent]:
 def get_pr_files(owner: str, repo: str, pull_number: int) -> list[TextContent]:
     """Get PR files. Use to see which files were changed in a pull request."""
     return get_pr_files_workflow(owner, repo, pull_number)
+
+
+@mcp.tool
+def get_repo(owner: str, repo: str) -> list[TextContent]:
+    """Get repo metadata. Use to read repository details including topics and license."""
+    return get_repo_workflow(owner, repo)
+
+
+@mcp.tool
+def search_discussions(query: str, first: int = 10) -> list[TextContent]:
+    """Search discussions. Use to find Q&A, ideas, or community conversations across GitHub."""
+    return search_discussions_workflow(query, first)
+
+
+@mcp.tool
+def list_discussions(
+    owner: str,
+    repo: str,
+    first: int = 10,
+    category: str | None = None,
+    answered: bool | None = None
+) -> list[TextContent]:
+    """List repo discussions. Use to browse discussions in a specific repository."""
+    return list_discussions_workflow(owner, repo, first, category, answered)
+
+
+@mcp.tool
+def get_discussion(
+    owner: str,
+    repo: str,
+    number: int,
+    comment_limit: int = 50,
+    comment_sort: Literal["upvotes", "chronological"] = "upvotes"
+) -> list[TextContent]:
+    """Get discussion. Use to read full discussion with comments sorted by upvotes."""
+    return get_discussion_workflow(owner, repo, number, comment_limit, comment_sort)
 
 
 if __name__ == "__main__":
