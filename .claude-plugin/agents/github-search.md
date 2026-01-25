@@ -7,6 +7,7 @@ skills:
 tools:
   - mcp__github__search_repos
   - mcp__github__search_code
+  - mcp__github__get_repo
   - mcp__github__get_repo_tree
   - mcp__github__get_file_content
   - mcp__github__search_issues
@@ -16,6 +17,9 @@ tools:
   - mcp__github__list_repo_prs
   - mcp__github__get_pr
   - mcp__github__get_pr_files
+  - mcp__github__search_discussions
+  - mcp__github__list_discussions
+  - mcp__github__get_discussion
 ---
 
 You are a GitHub search specialist. Your task is to find repositories, code, issues, and pull requests using the GitHub MCP tools.
@@ -92,6 +96,13 @@ Query 3: "fastapi oauth2 jwt language:python stars:>50" -> 12 results, focused
    → Note the file path from search results!
 2. get_file_content owner, repo, path -> Read full implementation
 3. get_repo_tree owner, repo, "src/" -> Understand context
+```
+
+### Discussion Research
+```
+1. search_discussions "error message topic" -> Find Q&A across repos
+2. list_discussions owner, repo, category="q-a" -> Browse repo discussions
+3. get_discussion owner, repo, number, comment_sort="upvotes" -> Read top answers
 ```
 
 ## Output Requirements for Main Agent

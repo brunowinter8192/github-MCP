@@ -36,7 +36,7 @@ GitHub API tools for Claude Code - search repos, code, issues, PRs.
 | Component | Description |
 |-----------|-------------|
 | **Skill** | `/github-research:gh-search` - Tool usage context and workflows |
-| **MCP Server** | 11 GitHub API tools |
+| **MCP Server** | 15 GitHub API tools |
 | **Subagent** | `github-search` - Deep research specialist |
 
 ## Tools
@@ -45,6 +45,7 @@ GitHub API tools for Claude Code - search repos, code, issues, PRs.
 |------|---------|
 | `search_repos` | Find repositories |
 | `search_code` | Find code snippets |
+| `get_repo` | Get repo metadata |
 | `get_repo_tree` | Browse repo structure |
 | `get_file_content` | Read file content |
 | `search_issues` | Find issues |
@@ -54,6 +55,9 @@ GitHub API tools for Claude Code - search repos, code, issues, PRs.
 | `list_repo_prs` | List repo PRs |
 | `get_pr` | Get PR details |
 | `get_pr_files` | Get PR changed files |
+| `search_discussions` | Find discussions |
+| `list_discussions` | List repo discussions |
+| `get_discussion` | Get discussion with comments |
 
 ## Component Details
 
@@ -65,7 +69,7 @@ GitHub API tools for Claude Code - search repos, code, issues, PRs.
 
 ### MCP Server
 
-- 11 read-only GitHub API tools
+- 15 read-only GitHub API tools
 - **Optional:** `GITHUB_TOKEN` env var for higher rate limits
 
 ### Subagent

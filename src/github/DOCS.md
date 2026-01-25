@@ -181,3 +181,78 @@ Performs HTTP GET request to GitHub Pulls Files API. Returns array of file objec
 
 ### format_pr_files()
 Transforms raw API response into human-readable text output. Calculates total additions and deletions. Lists each file with status icon, filename, change counts, and truncated patch preview. Shows renamed files with previous filename.
+
+## graphql_client.py
+
+**Purpose:** Shared GraphQL client infrastructure for GitHub GraphQL API.
+**Input:** GraphQL query string and variables dict
+**Output:** Parsed JSON response data
+
+### graphql_query()
+Performs HTTP POST request to GitHub GraphQL API. Constructs Authorization header with Bearer token. Sends query and variables as JSON body. Raises exception on HTTP errors or GraphQL errors. Returns data field from response.
+
+## get_repo.py
+
+**Purpose:** Retrieve repository metadata including topics and license.
+**Input:** owner, repo name
+**Output:** Human-readable formatted text with repository details
+
+### get_repo_workflow()
+Main orchestrator that coordinates repository metadata retrieval. Calls fetch_repo to get raw API data, then format_repo to structure the output. Returns formatted text string with repository details.
+
+### fetch_repo()
+Performs HTTP GET request to GitHub Repos API for specific repository. Returns raw JSON response containing full repository metadata.
+
+### format_repo()
+Transforms raw API response into human-readable text output. Extracts full_name, stars, description, language, topics array, license name, updated date, open issues count, default branch, and URL. Returns formatted text string with repository overview.
+
+## search_discussions.py
+
+**Purpose:** Search GitHub Discussions across all repositories using GraphQL Search API.
+**Input:** query string, first (limit)
+**Output:** Human-readable formatted text listing discussions with metadata
+
+### search_discussions_workflow()
+Main orchestrator that coordinates discussion search. Calls fetch_discussions to query GraphQL API, then format_results to structure the output. Returns formatted text string with discussion listings.
+
+### fetch_discussions()
+Performs GraphQL query to GitHub Search API with type: DISCUSSION. Requests number, title, repository, author, category, comments count, upvotes, answered status, and URL. Returns raw GraphQL response data.
+
+### format_results()
+Transforms raw GraphQL response into human-readable text output. Lists total count and each discussion with title, category emoji, repository, author, comment count, upvotes, answered status, and URL.
+
+## list_discussions.py
+
+**Purpose:** List discussions in a specific repository using GraphQL Repository API.
+**Input:** owner, repo name, first (limit), optional category slug, optional answered filter
+**Output:** Human-readable formatted text listing discussions sorted by update date
+
+### list_discussions_workflow()
+Main orchestrator that coordinates repository discussion listing. Optionally calls lookup_category_id if category filter provided, then fetch_discussions for the list, then format_results to structure output. Returns formatted text string with discussion list.
+
+### lookup_category_id()
+Performs GraphQL query to get discussionCategories for repository. Matches provided slug against category slugs. Returns category ID string or None if not found.
+
+### fetch_discussions()
+Performs GraphQL query to repository discussions with orderBy UPDATED_AT DESC. Applies optional categoryId and answered filters. Returns raw GraphQL response data.
+
+### format_results()
+Transforms raw GraphQL response into human-readable text output. Lists each discussion with title, category, author, comments, upvotes, answered status, update date, and number.
+
+## get_discussion.py
+
+**Purpose:** Retrieve full discussion with comments using GraphQL Repository API.
+**Input:** owner, repo name, discussion number, comment_limit, comment_sort
+**Output:** Human-readable formatted text with discussion body, accepted answer, and top comments
+
+### get_discussion_workflow()
+Main orchestrator that coordinates single discussion retrieval. Calls fetch_discussion to get GraphQL data, then format_discussion to structure output with comment sorting. Returns formatted text string with complete discussion.
+
+### fetch_discussion()
+Performs GraphQL query for specific discussion number. Requests title, body, author, category, upvotes, dates, answered status, answer details, and comments with replies. Returns raw GraphQL response data.
+
+### sort_comments()
+Sorts comments array by upvoteCount descending if sort_by is "upvotes". Returns original order for "chronological". Applies limit after sorting.
+
+### format_discussion()
+Transforms raw GraphQL response into human-readable text output. Displays title, category, author, creation date, upvotes, and status. Shows body content, accepted answer section if present, and comments with nested replies. Marks accepted answer comments with [ANSWER] tag.

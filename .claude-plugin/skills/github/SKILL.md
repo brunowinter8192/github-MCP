@@ -11,6 +11,7 @@ description: GitHub API search and exploration tools
 |------|---------|
 | `mcp__github__search_repos` | Find repositories by keywords, stars, language |
 | `mcp__github__search_code` | Find code snippets across GitHub |
+| `mcp__github__get_repo` | Get repository metadata (topics, license, etc.) |
 | `mcp__github__get_repo_tree` | Browse repository file structure |
 | `mcp__github__get_file_content` | Read file contents from a repo |
 | `mcp__github__search_issues` | Find issues across repositories |
@@ -20,6 +21,9 @@ description: GitHub API search and exploration tools
 | `mcp__github__list_repo_prs` | List PRs in a specific repo |
 | `mcp__github__get_pr` | Get single PR details |
 | `mcp__github__get_pr_files` | Get files changed in a PR |
+| `mcp__github__search_discussions` | Find discussions across GitHub |
+| `mcp__github__list_discussions` | List discussions in a specific repo |
+| `mcp__github__get_discussion` | Get discussion with comments |
 
 ---
 
@@ -248,16 +252,100 @@ mcp__github__get_pr_files(owner="anthropics", repo="claude-code", pull_number=45
 
 ---
 
+## Repository Tools
+
+### `mcp__github__get_repo`
+
+Get repository metadata including topics and license.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `owner` | string | Yes | Repository owner |
+| `repo` | string | Yes | Repository name |
+
+**Example:**
+```
+mcp__github__get_repo(owner="anthropics", repo="claude-code")
+```
+
+---
+
+## Discussion Tools
+
+### `mcp__github__search_discussions`
+
+Find discussions across all public repositories (Q&A, ideas, announcements).
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | string | Yes | Search query with GitHub qualifiers |
+| `first` | int | No | Number of results (default: 10, max: 100) |
+
+**Example:**
+```
+mcp__github__search_discussions(query="MCP server setup", first=5)
+```
+
+---
+
+### `mcp__github__list_discussions`
+
+List discussions in a specific repository.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `owner` | string | Yes | Repository owner |
+| `repo` | string | Yes | Repository name |
+| `first` | int | No | Number of results (default: 10) |
+| `category` | string | No | Filter by category slug (e.g., "q-a", "ideas") |
+| `answered` | bool | No | Filter by answered status |
+
+**Example:**
+```
+mcp__github__list_discussions(owner="anthropics", repo="claude-code", category="q-a", answered=False)
+```
+
+---
+
+### `mcp__github__get_discussion`
+
+Get full discussion with comments.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `owner` | string | Yes | Repository owner |
+| `repo` | string | Yes | Repository name |
+| `number` | int | Yes | Discussion number |
+| `comment_limit` | int | No | Max comments (default: 50) |
+| `comment_sort` | string | No | "upvotes" (default) or "chronological" |
+
+**Example:**
+```
+mcp__github__get_discussion(owner="anthropics", repo="claude-code", number=123, comment_sort="upvotes")
+```
+
+---
+
 ## Usage Strategy
 
 ### Tool Selection
 
 | Goal | Primary Tool | Secondary |
 |------|--------------|-----------|
-| Find projects by topic | search_repos | - |
+| Find projects by topic | search_repos | get_repo |
 | Find code patterns | search_code | get_file_content |
 | Understand structure | get_repo_tree | get_file_content |
 | Compare projects | search_repos | get_file_content (README) |
+| Find Q&A/help | search_discussions | get_discussion |
+| Community insights | list_discussions | get_discussion |
 
 ### Reading Priority (per repository)
 
