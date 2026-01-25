@@ -1,0 +1,19 @@
+# INFRASTRUCTURE
+import os
+
+GITHUB_API_BASE = "https://api.github.com"
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
+RESULTS_PER_PAGE = 20
+
+
+# FUNCTIONS
+
+# Build headers with optional auth token
+def build_headers(accept: str = "application/vnd.github+json") -> dict:
+    headers = {
+        "Accept": accept,
+        "X-GitHub-Api-Version": "2022-11-28"
+    }
+    if GITHUB_TOKEN:
+        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+    return headers

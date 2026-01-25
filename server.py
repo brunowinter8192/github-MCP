@@ -29,25 +29,25 @@ def search_repos(
     query: str,
     sort_by: Literal["stars", "forks", "updated", "best_match"] = "best_match"
 ) -> list[TextContent]:
-    """Search repos."""
+    """Search repos. Use when user wants to find projects, libraries, or frameworks."""
     return search_repos_workflow(query, sort_by)
 
 
 @mcp.tool
 def search_code(query: str) -> list[TextContent]:
-    """Search code."""
+    """Search code. Use to find implementation patterns or usage examples across GitHub."""
     return search_code_workflow(query)
 
 
 @mcp.tool
 def get_repo_tree(owner: str, repo: str, path: str = "") -> list[TextContent]:
-    """Get repo tree."""
+    """Get repo tree. Use to browse repository structure before reading specific files."""
     return get_repo_tree_workflow(owner, repo, path)
 
 
 @mcp.tool
 def get_file_content(owner: str, repo: str, path: str) -> list[TextContent]:
-    """Get file content."""
+    """Get file content. Use after browsing repo tree to read specific files."""
     return get_file_content_workflow(owner, repo, path)
 
 
@@ -56,19 +56,19 @@ def search_issues(
     query: str,
     sort_by: Literal["comments", "reactions", "created", "updated", "best_match"] = "best_match"
 ) -> list[TextContent]:
-    """Search issues."""
+    """Search issues. Use to find bug reports, feature requests, or discussions."""
     return search_issues_workflow(query, sort_by)
 
 
 @mcp.tool
 def get_issue(owner: str, repo: str, issue_number: int) -> list[TextContent]:
-    """Get issue."""
+    """Get issue. Use to read full issue details including description."""
     return get_issue_workflow(owner, repo, issue_number)
 
 
 @mcp.tool
 def get_issue_comments(owner: str, repo: str, issue_number: int) -> list[TextContent]:
-    """Get issue comments."""
+    """Get issue comments. Use to read the discussion thread on an issue."""
     return get_issue_comments_workflow(owner, repo, issue_number)
 
 
@@ -77,7 +77,7 @@ def search_prs(
     query: str,
     sort_by: Literal["comments", "reactions", "created", "updated", "best_match"] = "best_match"
 ) -> list[TextContent]:
-    """Search PRs."""
+    """Search PRs. Use to find code changes, fixes, or feature implementations."""
     return search_prs_workflow(query, sort_by)
 
 
@@ -88,19 +88,19 @@ def list_repo_prs(
     state: Literal["open", "closed", "all"] = "open",
     sort_by: Literal["created", "updated", "popularity", "long-running"] = "created"
 ) -> list[TextContent]:
-    """List repo PRs."""
+    """List repo PRs. Use to see recent activity or pending changes in a repository."""
     return list_repo_prs_workflow(owner, repo, state, sort_by)
 
 
 @mcp.tool
 def get_pr(owner: str, repo: str, pull_number: int) -> list[TextContent]:
-    """Get PR."""
+    """Get PR. Use to read PR details including description and merge status."""
     return get_pr_workflow(owner, repo, pull_number)
 
 
 @mcp.tool
 def get_pr_files(owner: str, repo: str, pull_number: int) -> list[TextContent]:
-    """Get PR files."""
+    """Get PR files. Use to see which files were changed in a pull request."""
     return get_pr_files_workflow(owner, repo, pull_number)
 
 

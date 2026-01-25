@@ -58,6 +58,18 @@ Find code snippets across all public repositories.
 mcp__github__search_code(query="@mcp.tool language:python")
 ```
 
+**Output Parsing:**
+
+Code search returns file paths - extract them for your output:
+```
+search_code("@mcp.tool language:python")
+→ Returns: st3v3nmw/sourcerer-mcp - internal/mcp/server.go
+→ Note path: internal/mcp/server.go
+→ Include in output: "MCP tools in `internal/mcp/server.go`"
+```
+
+Always note the file path, not just the repo name.
+
 ---
 
 ### `mcp__github__search_issues`

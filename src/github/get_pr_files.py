@@ -1,10 +1,8 @@
 # INFRASTRUCTURE
-import os
 import requests
 from mcp.types import TextContent
+from src.github.client import GITHUB_API_BASE, build_headers
 
-GITHUB_API_BASE = "https://api.github.com"
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 FILES_PER_PAGE = 100
 MAX_PATCH_PREVIEW = 500
 
@@ -22,13 +20,7 @@ def get_pr_files_workflow(owner: str, repo: str, pull_number: int) -> list[TextC
 def fetch_pr_files(owner: str, repo: str, pull_number: int) -> list:
     url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}/pulls/{pull_number}/files"
     params = {"per_page": FILES_PER_PAGE}
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28"
-    }
-    if GITHUB_TOKEN:
-        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
-    response = requests.get(url, params=params, headers=headers)
+    response = requests.get(url, params=params, headers=build_headers())
     response.raise_for_status()
     return response.json()
 

@@ -2,19 +2,34 @@
 
 GitHub API tools for Claude Code - search repos, code, issues, PRs.
 
-## Quick Start
+**Status:** In active development
 
-1. Add marketplace:
-```bash
-/plugin marketplace add brunowinter8192/github-MCP
-```
+## Installation
 
-2. Install plugin:
+### Option A: Global (all projects)
+
 ```bash
 /plugin install github-research@brunowinter-plugins
 ```
 
-3. Activate: Type `ghs` in prompt or `/github-research:gh-search`
+### Option B: Project-scoped (only this project)
+
+```bash
+/plugin install github-research@brunowinter-plugins --scope project
+```
+
+### Scope Overview
+
+| Scope | Location | Visibility |
+|-------|----------|------------|
+| user | ~/.claude/settings.json | Only you, all projects |
+| project | .claude/settings.json | All collaborators |
+| local | .claude/settings.local.json | Only you, only this project |
+
+## Quick Start
+
+1. Install plugin (see above)
+2. Activate: Type `ghs` in prompt or `/github-research:gh-search`
 
 ## Plugin Components
 
@@ -96,3 +111,11 @@ github/
 | `src/github/DOCS.md` | Tool implementation details |
 | `.claude-plugin/skills/github/SKILL.md` | Tool usage guide |
 | `.claude-plugin/agents/github-search.md` | Subagent instructions |
+
+## Development
+
+Local testing without installation:
+
+```bash
+claude --plugin-dir ./github
+```
