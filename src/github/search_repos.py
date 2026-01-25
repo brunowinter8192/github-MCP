@@ -1,12 +1,8 @@
 # INFRASTRUCTURE
-import os
 import requests
 from typing import Literal
 from mcp.types import TextContent
-
-GITHUB_API_BASE = "https://api.github.com"
-RESULTS_PER_PAGE = 20
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
+from src.github.client import GITHUB_API_BASE, RESULTS_PER_PAGE, build_headers
 
 
 # ORCHESTRATOR
@@ -34,15 +30,7 @@ def fetch_repositories(query: str, sort_by: str) -> dict:
     if sort_by != "best_match":
         params["sort"] = sort_by
 
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28"
-    }
-
-    if GITHUB_TOKEN:
-        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
-
-    response = requests.get(url, params=params, headers=headers)
+    response = requests.get(url, params=params, headers=build_headers())
     response.raise_for_status()
     return response.json()
 

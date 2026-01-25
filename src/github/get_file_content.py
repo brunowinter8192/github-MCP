@@ -1,11 +1,8 @@
 # INFRASTRUCTURE
-import os
 import requests
 import base64
 from mcp.types import TextContent
-
-GITHUB_API_BASE = "https://api.github.com"
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
+from src.github.client import GITHUB_API_BASE, build_headers
 
 
 # ORCHESTRATOR
@@ -20,15 +17,7 @@ def get_file_content_workflow(owner: str, repo: str, path: str) -> list[TextCont
 # Fetch file content from GitHub Contents API
 def fetch_file_content(owner: str, repo: str, path: str) -> dict:
     url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}/contents/{path}"
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28"
-    }
-
-    if GITHUB_TOKEN:
-        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
-
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=build_headers())
     response.raise_for_status()
     return response.json()
 

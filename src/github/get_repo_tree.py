@@ -1,11 +1,9 @@
 # INFRASTRUCTURE
-import os
 import requests
 from mcp.types import TextContent
+from src.github.client import GITHUB_API_BASE, build_headers
 
-GITHUB_API_BASE = "https://api.github.com"
 MAX_TREE_CHARS = 1000
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 
 
 # ORCHESTRATOR
@@ -18,17 +16,6 @@ def get_repo_tree_workflow(owner: str, repo: str, path: str = "") -> list[TextCo
 
 
 # FUNCTIONS
-
-# Build headers with optional auth token
-def build_headers(accept: str = "application/vnd.github+json") -> dict:
-    headers = {
-        "Accept": accept,
-        "X-GitHub-Api-Version": "2022-11-28"
-    }
-    if GITHUB_TOKEN:
-        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
-    return headers
-
 
 # Get default branch name for repository
 def fetch_default_branch(owner: str, repo: str) -> str:

@@ -1,10 +1,7 @@
 # INFRASTRUCTURE
-import os
 import requests
 from mcp.types import TextContent
-
-GITHUB_API_BASE = "https://api.github.com"
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
+from src.github.client import GITHUB_API_BASE, build_headers
 
 
 # ORCHESTRATOR
@@ -19,13 +16,7 @@ def get_issue_workflow(owner: str, repo: str, issue_number: int) -> list[TextCon
 # Fetch single issue from GitHub API
 def fetch_issue(owner: str, repo: str, issue_number: int) -> dict:
     url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}/issues/{issue_number}"
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28"
-    }
-    if GITHUB_TOKEN:
-        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=build_headers())
     response.raise_for_status()
     return response.json()
 

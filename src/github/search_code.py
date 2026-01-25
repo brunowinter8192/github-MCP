@@ -1,11 +1,7 @@
 # INFRASTRUCTURE
-import os
 import requests
 from mcp.types import TextContent
-
-GITHUB_API_BASE = "https://api.github.com"
-RESULTS_PER_PAGE = 20
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
+from src.github.client import GITHUB_API_BASE, RESULTS_PER_PAGE, build_headers
 
 
 # ORCHESTRATOR
@@ -24,15 +20,7 @@ def fetch_code_search(query: str) -> dict:
         "q": query,
         "per_page": RESULTS_PER_PAGE
     }
-    headers = {
-        "Accept": "application/vnd.github.text-match+json",
-        "X-GitHub-Api-Version": "2022-11-28"
-    }
-
-    if GITHUB_TOKEN:
-        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
-
-    response = requests.get(url, params=params, headers=headers)
+    response = requests.get(url, params=params, headers=build_headers("application/vnd.github.text-match+json"))
     response.raise_for_status()
     return response.json()
 
