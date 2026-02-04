@@ -101,6 +101,7 @@ github/
 ├── .claude-plugin/           # Plugin distribution
 │   ├── plugin.json           # Plugin metadata
 │   ├── marketplace.json      # Marketplace entry
+│   ├── .mcp.json             # MCP server config
 │   ├── skills/github/SKILL.md
 │   └── agents/github-search.md
 ├── server.py                 # MCP entry point
