@@ -38,11 +38,11 @@ Processes text_matches array from API response. Filters for matches on content a
 ## get_repo_tree.py
 
 **Purpose:** Traverse repository structure with lazy loading to handle large repositories.
-**Input:** owner, repo name, optional path for sub-tree exploration
-**Output:** Human-readable formatted text showing tree structure with truncation warning if too large
+**Input:** owner, repo name, optional path for sub-tree exploration, optional depth for tree depth limiting
+**Output:** Human-readable formatted text showing tree structure with root-level items prioritized and truncation warning if too large
 
 ### get_repo_tree_workflow()
-Main orchestrator that coordinates tree retrieval. First fetches default branch name, then gets tree SHA for specified path. Fetches full recursive tree and formats response with depth limiting if needed. Returns formatted JSON string with tree items, truncated flag, and optional warning.
+Main orchestrator that coordinates tree retrieval. First fetches default branch name, then gets tree SHA for specified path. Determines recursive mode based on depth parameter (depth=1 skips recursive API call). Fetches tree and formats response with depth filtering and root-level prioritization. Returns formatted text string with tree items.
 
 ### fetch_default_branch()
 Gets default branch name for repository by querying repository metadata. Returns branch name string (e.g., "main" or "master").
@@ -51,10 +51,10 @@ Gets default branch name for repository by querying repository metadata. Returns
 Resolves tree SHA for given path. For root path, fetches branch info to get commit tree SHA. For sub-paths, uses Contents API to get directory SHA. Raises ValueError if path is not a directory.
 
 ### fetch_tree()
-Performs HTTP GET request to GitHub Git Trees API with recursive parameter. Returns complete tree structure with all nested paths flattened into single array. Each item includes path, type (blob/tree), size, and SHA.
+Performs HTTP GET request to GitHub Git Trees API. Accepts recursive boolean parameter: when True passes recursive=true to API (returns all nested paths), when False returns only direct children of the tree SHA. Returns tree structure with items including path, type (blob/tree), size, and SHA.
 
 ### format_tree_response()
-Transforms raw tree into human-readable text output. Separates directories and files into categorized lists. Shows up to 50 directories and 50 files. Checks if formatted text exceeds MAX_TREE_CHARS (1000) and appends truncation warning if needed. Returns formatted text string displaying directory path, directories list, and files list with sizes.
+Transforms raw tree into human-readable text output. When depth > 0, filters items to only include paths with fewer than depth "/" separators. Sorts directories and files by path depth (root-level items first) to ensure shallow items are always visible within the 50-item display limit. Checks if formatted text exceeds MAX_TREE_CHARS (1000) and appends truncation warning if needed. Returns formatted text string displaying directory path, directories list, and files list with sizes.
 
 ## get_file_content.py
 

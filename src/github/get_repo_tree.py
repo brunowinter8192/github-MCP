@@ -7,11 +7,12 @@ MAX_TREE_CHARS = 1000
 
 
 # ORCHESTRATOR
-def get_repo_tree_workflow(owner: str, repo: str, path: str = "") -> list[TextContent]:
+def get_repo_tree_workflow(owner: str, repo: str, path: str = "", depth: int = -1) -> list[TextContent]:
     default_branch = fetch_default_branch(owner, repo)
     tree_sha = get_tree_sha(owner, repo, default_branch, path)
-    raw_tree = fetch_tree(owner, repo, tree_sha)
-    formatted_string = format_tree_response(raw_tree, path)
+    recursive = depth != 1
+    raw_tree = fetch_tree(owner, repo, tree_sha, recursive)
+    formatted_string = format_tree_response(raw_tree, path, depth)
     return [TextContent(type="text", text=formatted_string)]
 
 
@@ -50,9 +51,9 @@ def get_tree_sha(owner: str, repo: str, branch: str, path: str) -> str:
 
 
 # Fetch tree structure from GitHub Git Trees API
-def fetch_tree(owner: str, repo: str, tree_sha: str) -> dict:
+def fetch_tree(owner: str, repo: str, tree_sha: str, recursive: bool = True) -> dict:
     url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}/git/trees/{tree_sha}"
-    params = {"recursive": "true"}
+    params = {"recursive": "true"} if recursive else {}
     headers = build_headers()
 
     response = requests.get(url, params=params, headers=headers)
@@ -60,8 +61,8 @@ def fetch_tree(owner: str, repo: str, tree_sha: str) -> dict:
     return response.json()
 
 
-# Format tree response with depth limiting if needed
-def format_tree_response(raw_tree: dict, base_path: str) -> str:
+# Format tree response with depth filtering and root-level prioritization
+def format_tree_response(raw_tree: dict, base_path: str, depth: int = -1) -> str:
     tree_items = raw_tree.get("tree", [])
 
     lines = []
@@ -71,8 +72,17 @@ def format_tree_response(raw_tree: dict, base_path: str) -> str:
         lines.append("Empty directory.")
         return "\n".join(lines)
 
-    dirs = [item for item in tree_items if item["type"] == "tree"]
-    files = [item for item in tree_items if item["type"] == "blob"]
+    if depth > 0:
+        tree_items = [item for item in tree_items if item["path"].count("/") < depth]
+
+    dirs = sorted(
+        [item for item in tree_items if item["type"] == "tree"],
+        key=lambda item: item["path"].count("/")
+    )
+    files = sorted(
+        [item for item in tree_items if item["type"] == "blob"],
+        key=lambda item: item["path"].count("/")
+    )
 
     lines.append(f"Directories ({len(dirs)}):")
     for item in dirs[:50]:
@@ -86,6 +96,6 @@ def format_tree_response(raw_tree: dict, base_path: str) -> str:
     current_output = "\n".join(lines)
     if len(current_output) > MAX_TREE_CHARS:
         lines.append(f"\n\nWARNING: Tree truncated (>{MAX_TREE_CHARS} chars).")
-        lines.append("Showing top 50 directories and 50 files. Use path parameter to explore subdirectories.")
+        lines.append("Showing top 50 directories and 50 files. Use path parameter or depth=1 to narrow results.")
 
     return "\n".join(lines)

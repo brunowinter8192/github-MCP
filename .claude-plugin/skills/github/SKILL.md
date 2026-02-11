@@ -125,10 +125,16 @@ Browse repository file structure.
 | `owner` | string | Yes | Repository owner (e.g., "anthropics") |
 | `repo` | string | Yes | Repository name (e.g., "claude-code") |
 | `path` | string | No | Subdirectory path (default: root) |
+| `depth` | int | No | Tree depth: -1 = full recursive (default), 1 = direct children only, N = limit to N levels |
+
+**Notes:**
+- Results are sorted by depth: root-level files/dirs appear first, deeper items after
+- Use `depth=1` to see only immediate contents of a directory (avoids flooding from deep subdirectories)
 
 **Example:**
 ```
 mcp__github__get_repo_tree(owner="fastmcp", repo="fastmcp", path="src")
+mcp__github__get_repo_tree(owner="user", repo="big-repo", path="data", depth=1)
 ```
 
 ---

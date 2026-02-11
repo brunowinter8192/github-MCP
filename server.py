@@ -44,9 +44,9 @@ def search_code(query: str) -> list[TextContent]:
 
 
 @mcp.tool
-def get_repo_tree(owner: str, repo: str, path: str = "") -> list[TextContent]:
+def get_repo_tree(owner: str, repo: str, path: str = "", depth: int = -1) -> list[TextContent]:
     """Get repo tree. Use to browse repository structure before reading specific files."""
-    return get_repo_tree_workflow(owner, repo, path)
+    return get_repo_tree_workflow(owner, repo, path, depth)
 
 
 @mcp.tool
