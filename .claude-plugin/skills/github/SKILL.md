@@ -398,11 +398,17 @@ mcp__github__get_discussion(owner="anthropics", repo="claude-code", number=123, 
 **1. DOCS first — always.**
 Before opening data files or CSVs in any directory, check for README.md or DOCS.md in that directory (or parent). Well-documented repos explain which files are authoritative and what each subdirectory contains. Skipping DOCS leads to reading the wrong file.
 
-**2. Ambiguous matches — check all, report discrepancy.**
-When multiple files share the same name in different paths (e.g., `two_step_evaluation_overview.csv` in both `Misc/` and `Prediction_Methods/`): read both, compare values, and report which matches and which doesn't. Never silently pick one and assume it's correct.
+**2. Ambiguous matches — check ALL before reporting.**
+When multiple candidates exist (same filename in different paths, multiple subdirectories like `approach_1/` through `approach_4/`, different versions of the same data): check ALL of them BEFORE reporting any result to the user. Never report a mismatch after checking only one candidate when others remain unchecked. The correct workflow is:
+1. Identify all candidates (parallel `get_file_content` or `grep_file` calls)
+2. Compare each against the expected data
+3. Report the full picture: which matches, which don't, and why
 
-**3. When unsure — show both to the user.**
-If you cannot determine which source is authoritative, present both findings with their full paths and let the user decide. One wrong assumption wastes more time than one extra tool call.
+**Bad:** "v2/config.json doesn't match. Should I check the others?"
+**Good:** "Found config.json in 3 locations. v1/ matches the expected data, v2/ and v3/ differ because [reasons]."
+
+**3. When no candidate matches — show all to the user.**
+If after checking ALL candidates none matches, present all findings with their full paths and let the user decide. One wrong assumption wastes more time than a few extra tool calls.
 
 ### Tool Selection
 

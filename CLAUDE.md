@@ -37,7 +37,6 @@ Editable files for Process Improvements in RECAP/IMPROVE phase:
 |--------------------|------------------------|
 | `.claude/agents/github-search.md` | `.claude-plugin/agents/github-search.md` |
 | `.claude/skills/github/*` | `.claude-plugin/skills/github/*` |
-| `.mcp.json` | `.claude-plugin/.mcp.json` (absolute paths replaced with `${CLAUDE_PLUGIN_ROOT}`) |
 
 **Rules:**
 - ALWAYS edit `.claude/` files, NEVER `.claude-plugin/` directly
