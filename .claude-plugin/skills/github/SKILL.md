@@ -14,6 +14,7 @@ description: GitHub API search and exploration tools
 | `mcp__github__get_repo` | Get repository metadata (topics, license, etc.) |
 | `mcp__github__get_repo_tree` | Browse repository file structure |
 | `mcp__github__get_file_content` | Read file contents from a repo |
+| `mcp__github__search_repo_files` | Find files by name pattern (glob) |
 | `mcp__github__search_issues` | Find issues across repositories |
 | `mcp__github__get_issue` | Get single issue details |
 | `mcp__github__get_issue_comments` | Get comments on an issue |
@@ -156,6 +157,27 @@ Read file contents from a repository.
 ```
 mcp__github__get_file_content(owner="fastmcp", repo="fastmcp", path="README.md")
 mcp__github__get_file_content(owner="user", repo="repo", path="large_file.csv", metadata_only=True)
+```
+
+---
+
+### `mcp__github__search_repo_files`
+
+Find files by name pattern (glob) in a repository.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `owner` | string | Yes | Repository owner |
+| `repo` | string | Yes | Repository name |
+| `pattern` | string | Yes | Glob pattern to match filenames (e.g., "*.csv", "*runtime*"). Matches against basename by default; use "/" in pattern to match full path |
+| `path` | string | No | Subdirectory to search within (default: entire repo) |
+
+**Example:**
+```
+mcp__github__search_repo_files(owner="user", repo="repo", pattern="*histograms*")
+mcp__github__search_repo_files(owner="user", repo="repo", pattern="*.csv", path="data")
 ```
 
 ---

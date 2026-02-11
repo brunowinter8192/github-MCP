@@ -74,6 +74,21 @@ Extracts only metadata fields from API response: path, name, size, type, sha, ht
 ### format_file_response()
 Validates response type is "file" (not directory). Decodes base64 content to UTF-8 string after removing newlines from base64 string. Raises ValueError if path is not a file. Returns formatted text string displaying file metadata (name, path, size, URL) followed by separator and decoded content.
 
+## search_repo_files.py
+
+**Purpose:** Find files by name pattern (glob) in a GitHub repository.
+**Input:** owner, repo name, glob pattern, optional path to narrow search scope
+**Output:** Human-readable formatted text listing matching files with sizes
+
+### search_repo_files_workflow()
+Main orchestrator that coordinates file search. Reuses fetch_default_branch, get_tree_sha, and fetch_tree from get_repo_tree module. Fetches full recursive tree, filters by glob pattern, and formats matches. Returns formatted text string with matching file list.
+
+### filter_by_pattern()
+Filters tree items (blobs only) using fnmatch. When pattern contains "/" matches against full path, otherwise matches against basename only. Returns up to RESULTS_LIMIT (50) matching items.
+
+### format_matches()
+Transforms matched items into human-readable text output. Displays search pattern, scope, match count, and each file with path and size in bytes.
+
 ## search_issues.py
 
 **Purpose:** Search GitHub issues using the Search Issues API.

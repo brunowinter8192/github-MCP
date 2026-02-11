@@ -11,6 +11,7 @@ from src.github.search_repos import search_repos_workflow
 from src.github.search_code import search_code_workflow
 from src.github.get_repo_tree import get_repo_tree_workflow
 from src.github.get_file_content import get_file_content_workflow
+from src.github.search_repo_files import search_repo_files_workflow
 from src.github.search_issues import search_issues_workflow
 from src.github.get_issue import get_issue_workflow
 from src.github.get_issue_comments import get_issue_comments_workflow
@@ -53,6 +54,12 @@ def get_repo_tree(owner: str, repo: str, path: str = "", depth: int = -1) -> lis
 def get_file_content(owner: str, repo: str, path: str, metadata_only: bool = False) -> list[TextContent]:
     """Get file content. Use after browsing repo tree to read specific files."""
     return get_file_content_workflow(owner, repo, path, metadata_only)
+
+
+@mcp.tool
+def search_repo_files(owner: str, repo: str, pattern: str, path: str = "") -> list[TextContent]:
+    """Find files by name pattern (glob) in a repository."""
+    return search_repo_files_workflow(owner, repo, pattern, path)
 
 
 @mcp.tool
