@@ -65,10 +65,14 @@ def fetch_tree(owner: str, repo: str, tree_sha: str, recursive: bool = True) -> 
 def format_tree_response(raw_tree: dict, base_path: str, depth: int = -1) -> str:
     tree_items = raw_tree.get("tree", [])
 
-    lines = []
-    lines.append(f"Directory: {base_path if base_path else '/'}\n")
+    truncated = raw_tree.get("truncated", False)
 
     if not tree_items:
+        lines = []
+        lines.append(f"Directory: {base_path if base_path else '/'}\n")
+        if truncated:
+            lines.append("WARNING: Repository tree was truncated by GitHub API. Results may be incomplete.")
+            lines.append("Use 'path' parameter to browse specific subdirectories or 'depth=1' for shallow listing.\n")
         lines.append("Empty directory.")
         return "\n".join(lines)
 
@@ -84,18 +88,27 @@ def format_tree_response(raw_tree: dict, base_path: str, depth: int = -1) -> str
         key=lambda item: item["path"].count("/")
     )
 
-    lines.append(f"Directories ({len(dirs)}):")
+    content_lines = []
+    content_lines.append(f"Directories ({len(dirs)}):")
     for item in dirs[:50]:
-        lines.append(f"  {item['path']}/")
+        content_lines.append(f"  {item['path']}/")
 
-    lines.append(f"\nFiles ({len(files)}):")
+    content_lines.append(f"\nFiles ({len(files)}):")
     for item in files[:50]:
         size = item.get("size", 0)
-        lines.append(f"  {item['path']} ({size:,} bytes)")
+        content_lines.append(f"  {item['path']} ({size:,} bytes)")
 
-    current_output = "\n".join(lines)
-    if len(current_output) > MAX_TREE_CHARS:
-        lines.append(f"\n\nWARNING: Tree truncated (>{MAX_TREE_CHARS} chars).")
-        lines.append("Showing top 50 directories and 50 files. Use path parameter or depth=1 to narrow results.")
+    output_truncated = len("\n".join(content_lines)) > MAX_TREE_CHARS
 
+    lines = []
+    lines.append(f"Directory: {base_path if base_path else '/'}\n")
+
+    if truncated:
+        lines.append("WARNING: Repository tree was truncated by GitHub API. Results may be incomplete.")
+        lines.append("Use 'path' parameter to browse specific subdirectories or 'depth=1' for shallow listing.\n")
+    if output_truncated:
+        lines.append(f"WARNING: Output truncated (>{MAX_TREE_CHARS} chars). Showing top 50 directories and 50 files.")
+        lines.append("Use 'path' parameter or 'depth=1' to narrow results.\n")
+
+    lines.extend(content_lines)
     return "\n".join(lines)

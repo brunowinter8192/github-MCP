@@ -1,5 +1,12 @@
 # CLAUDE.MD - MCP Server Engineering Reference
 
+## PROJECT
+
+- **GitHub Repo:** `brunowinter8192/github-MCP`
+- **Bugs:** GitHub Issues (`gh issue create --repo brunowinter8192/github-MCP`)
+
+---
+
 ## CONFIGURATION
 
 Editable files for Process Improvements in RECAP/IMPROVE phase:
@@ -56,6 +63,7 @@ source .venv/bin/activate && python -c "from src.github.get_repo_tree import ...
 - The MCP server runs as a separate process - there is no local venv to activate
 - Always use `mcp__github__<tool_name>(...)` to verify tool behavior
 - Test both default parameters and new/changed parameters
+- **After code changes:** MCP server must be restarted before tool calls reflect changes. Ask user to restart (`/mcp` in Claude Code) before running verification tests
 
 ---
 

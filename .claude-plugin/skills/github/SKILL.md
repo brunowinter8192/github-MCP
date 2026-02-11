@@ -393,6 +393,17 @@ mcp__github__get_discussion(owner="anthropics", repo="claude-code", number=123, 
 
 ## Usage Strategy
 
+### Navigation Rules
+
+**1. DOCS first — always.**
+Before opening data files or CSVs in any directory, check for README.md or DOCS.md in that directory (or parent). Well-documented repos explain which files are authoritative and what each subdirectory contains. Skipping DOCS leads to reading the wrong file.
+
+**2. Ambiguous matches — check all, report discrepancy.**
+When multiple files share the same name in different paths (e.g., `two_step_evaluation_overview.csv` in both `Misc/` and `Prediction_Methods/`): read both, compare values, and report which matches and which doesn't. Never silently pick one and assume it's correct.
+
+**3. When unsure — show both to the user.**
+If you cannot determine which source is authoritative, present both findings with their full paths and let the user decide. One wrong assumption wastes more time than one extra tool call.
+
 ### Tool Selection
 
 | Goal | Primary Tool | Secondary |
@@ -421,5 +432,28 @@ mcp__github__get_discussion(owner="anthropics", repo="claude-code", number=123, 
 **Files per repo:**
 - Max 3-4 files (README + key sources)
 - Use get_repo_tree first to identify critical files
+
+### Known Limitations
+
+**`search_repo_files` — silent truncation on large repos (Issue #1):**
+- GitHub Git Trees API truncates at ~100k entries without error
+- On large repos (>10k files), `search_repo_files` may silently miss files
+- **Workaround:** Use `path` parameter to narrow search scope (e.g., `search_repo_files(pattern="*.md", path="src/module")`) — smaller subtree avoids truncation
+- **Fallback:** Use `search_code("filename repo:owner/repo")` — uses GitHub Code Search index, no truncation
+
+**`search_code` — does not index CSV/data files (Issue #2):**
+- GitHub Code Search skips certain file types (CSVs, data files, possibly generated files)
+- Searching for CSV column headers or values returns 0 results even when content exists
+- **Fallback:** Navigate via `get_repo_tree` → then `grep_file` on specific files
+
+**Combined gap:** For data files in large repos, neither `search_repo_files` nor `search_code` is reliable. Use `get_repo_tree` (with `depth=1`, drilling down step by step) + `grep_file` as the safe path. See Issue #3 for API investigation.
+
+### Searching for Values
+
+When searching for numeric values in CSVs or data files:
+- **Stored format ≠ display format:** 6.74% is stored as `0.06741992...`
+- `search_code("6.74")` → 0 results. `search_code("0.0674")` → may also fail (CSV not indexed)
+- **Strategy:** Search for the column/metric name (e.g., `overall_mre`) instead of the value itself
+- **Best approach for data files:** `get_repo_tree` to find CSVs → `grep_file` to search content
 
 

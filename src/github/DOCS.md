@@ -51,10 +51,10 @@ Gets default branch name for repository by querying repository metadata. Returns
 Resolves tree SHA for given path. For root path, fetches branch info to get commit tree SHA. For sub-paths, uses Contents API to get directory SHA. Raises ValueError if path is not a directory.
 
 ### fetch_tree()
-Performs HTTP GET request to GitHub Git Trees API. Accepts recursive boolean parameter: when True passes recursive=true to API (returns all nested paths), when False returns only direct children of the tree SHA. Returns tree structure with items including path, type (blob/tree), size, and SHA.
+Performs HTTP GET request to GitHub Git Trees API. Accepts recursive boolean parameter: when True passes recursive=true to API (returns all nested paths), when False returns only direct children of the tree SHA. Returns tree structure with items including path, type (blob/tree), size, and SHA. Response includes `truncated` boolean flag — when True, the tree exceeds GitHub API limits (~100k entries) and results are incomplete.
 
 ### format_tree_response()
-Transforms raw tree into human-readable text output. When depth > 0, filters items to only include paths with fewer than depth "/" separators. Sorts directories and files by path depth (root-level items first) to ensure shallow items are always visible within the 50-item display limit. Checks if formatted text exceeds MAX_TREE_CHARS (1000) and appends truncation warning if needed. Returns formatted text string displaying directory path, directories list, and files list with sizes.
+Transforms raw tree into human-readable text output. Checks `truncated` flag from API response and prepends warning if tree was truncated by GitHub API. When depth > 0, filters items to only include paths with fewer than depth "/" separators. Sorts directories and files by path depth (root-level items first) to ensure shallow items are always visible within the 50-item display limit. Checks if formatted text exceeds MAX_TREE_CHARS (1000) and appends output truncation warning if needed. Two independent warnings: API truncation (incomplete data from GitHub) and output truncation (display limit exceeded). Returns formatted text string displaying directory path, directories list, and files list with sizes.
 
 ## get_file_content.py
 
@@ -87,13 +87,13 @@ Decodes base64 file content to UTF-8 string after removing newlines from base64 
 **Output:** Human-readable formatted text listing matching files with sizes
 
 ### search_repo_files_workflow()
-Main orchestrator that coordinates file search. Reuses fetch_default_branch, get_tree_sha, and fetch_tree from get_repo_tree module. Fetches full recursive tree, filters by glob pattern, and formats matches. Returns formatted text string with matching file list.
+Main orchestrator that coordinates file search. Reuses fetch_default_branch, get_tree_sha, and fetch_tree from get_repo_tree module. Fetches full recursive tree, checks `truncated` flag from API response, filters by glob pattern, and formats matches with truncation warning if needed. Returns formatted text string with matching file list.
 
 ### filter_by_pattern()
 Filters tree items (blobs only) using fnmatch. When pattern contains "/" matches against full path, otherwise matches against basename only. Returns up to RESULTS_LIMIT (50) matching items.
 
 ### format_matches()
-Transforms matched items into human-readable text output. Displays search pattern, scope, match count, and each file with path and size in bytes.
+Transforms matched items into human-readable text output. Accepts optional `truncated` flag — when True, prepends warning that results may be incomplete due to GitHub API tree truncation. Displays search pattern, scope, match count, and each file with path and size in bytes.
 
 ## grep_file.py
 

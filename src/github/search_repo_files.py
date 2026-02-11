@@ -12,8 +12,9 @@ def search_repo_files_workflow(owner: str, repo: str, pattern: str, path: str = 
     default_branch = fetch_default_branch(owner, repo)
     tree_sha = get_tree_sha(owner, repo, default_branch, path)
     raw_tree = fetch_tree(owner, repo, tree_sha, recursive=True)
+    truncated = raw_tree.get("truncated", False)
     matches = filter_by_pattern(raw_tree, pattern)
-    return [TextContent(type="text", text=format_matches(matches, pattern, path))]
+    return [TextContent(type="text", text=format_matches(matches, pattern, path, truncated))]
 
 
 # FUNCTIONS
@@ -29,10 +30,14 @@ def filter_by_pattern(raw_tree: dict, pattern: str) -> list[dict]:
 
 
 # Format matching files as text output
-def format_matches(matches: list[dict], pattern: str, base_path: str) -> str:
+def format_matches(matches: list[dict], pattern: str, base_path: str, truncated: bool = False) -> str:
     lines = []
     scope = base_path if base_path else "/"
     lines.append(f"Search: \"{pattern}\" in {scope}\n")
+
+    if truncated:
+        lines.append("WARNING: Repository tree was truncated by GitHub API. Results may be incomplete.")
+        lines.append("Use the 'path' parameter to search within a specific directory for complete results.\n")
 
     if not matches:
         lines.append("No files found.")
