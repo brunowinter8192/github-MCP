@@ -50,9 +50,9 @@ def get_repo_tree(owner: str, repo: str, path: str = "", depth: int = -1) -> lis
 
 
 @mcp.tool
-def get_file_content(owner: str, repo: str, path: str) -> list[TextContent]:
+def get_file_content(owner: str, repo: str, path: str, metadata_only: bool = False) -> list[TextContent]:
     """Get file content. Use after browsing repo tree to read specific files."""
-    return get_file_content_workflow(owner, repo, path)
+    return get_file_content_workflow(owner, repo, path, metadata_only)
 
 
 @mcp.tool

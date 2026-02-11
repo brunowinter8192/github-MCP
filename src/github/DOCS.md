@@ -58,15 +58,18 @@ Transforms raw tree into human-readable text output. When depth > 0, filters ite
 
 ## get_file_content.py
 
-**Purpose:** Retrieve and decode file content from GitHub repositories.
-**Input:** owner, repo name, file path
-**Output:** Human-readable formatted text displaying decoded file content with metadata
+**Purpose:** Retrieve and decode file content from GitHub repositories, or return metadata only.
+**Input:** owner, repo name, file path, optional metadata_only flag
+**Output:** Human-readable formatted text displaying file content with metadata, or metadata only when metadata_only=True
 
 ### get_file_content_workflow()
-Main orchestrator that coordinates file retrieval. Calls fetch_file_content to get raw API response, then format_file_response to decode base64 content. Returns formatted text string with file metadata and decoded content.
+Main orchestrator that coordinates file retrieval. Accepts metadata_only parameter (default False). Calls fetch_file_content to get raw API response, then selects formatter: format_metadata (metadata only) or format_file_response (full content). Returns formatted text string.
 
 ### fetch_file_content()
 Performs HTTP GET request to GitHub Contents API for specific file path. Returns raw JSON response containing base64-encoded content and metadata.
+
+### format_metadata()
+Extracts only metadata fields from API response: path, name, size, type, sha, html_url. No base64 decoding. Use for existence checks or size queries without downloading content.
 
 ### format_file_response()
 Validates response type is "file" (not directory). Decodes base64 content to UTF-8 string after removing newlines from base64 string. Raises ValueError if path is not a file. Returns formatted text string displaying file metadata (name, path, size, URL) followed by separator and decoded content.

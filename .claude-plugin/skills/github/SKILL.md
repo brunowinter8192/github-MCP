@@ -150,10 +150,12 @@ Read file contents from a repository.
 | `owner` | string | Yes | Repository owner |
 | `repo` | string | Yes | Repository name |
 | `path` | string | Yes | File path (e.g., "src/main.py") |
+| `metadata_only` | bool | No | If true, return only file metadata (name, size, type, SHA, URL) without content. Use to check file existence or size without downloading. Default: false |
 
 **Example:**
 ```
 mcp__github__get_file_content(owner="fastmcp", repo="fastmcp", path="README.md")
+mcp__github__get_file_content(owner="user", repo="repo", path="large_file.csv", metadata_only=True)
 ```
 
 ---
