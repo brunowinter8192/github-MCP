@@ -16,11 +16,11 @@ Editable files for Process Improvements in RECAP/IMPROVE phase:
 | Project Standards | `CLAUDE.md` | Code conventions, MCP patterns, naming |
 | Iterative Dev | `.claude/skills/iterative-dev/SKILL.md` | PLAN-IMPLEMENT-RECAP-IMPROVE-CLOSING cycle |
 | GitHub Tools | `.claude/skills/github/SKILL.md` | MCP tool docs, parameters, usage strategy |
-| Codebase Context | `.claude/skills/codebase-context/SKILL.md` | Navigation context for explore subagent |
 | GitHub Agent | `.claude/skills/agent-github-search/SKILL.md` | GitHub search agent dispatch rules |
 | Explore Agent | `.claude/skills/agent-explore/SKILL.md` | Explore agent dispatch rules |
 | GitHub Search Instructions | `.claude/agents/github-search.md` | GitHub research subagent instructions |
 | Explore Instructions | `.claude/agents/explore-specialist.md` | Codebase search subagent instructions |
+| RAG MCP | `.claude/skills/RAG_MCP/SKILL.md` | Vector search over GitHub API docs (APIEndpoints collection) |
 
 ---
 
@@ -28,6 +28,7 @@ Editable files for Process Improvements in RECAP/IMPROVE phase:
 
 - NO emojis in production code, READMEs, DOCS.md, logs
 - ALWAYS keep script console output concise
+- `endpoints.md` lists all 47 GitHub REST API categories with `[RAG]` markers for those available via vector search
 
 ### Plugin Sync
 
