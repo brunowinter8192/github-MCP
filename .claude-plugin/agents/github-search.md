@@ -10,6 +10,8 @@ tools:
   - mcp__github__get_repo
   - mcp__github__get_repo_tree
   - mcp__github__get_file_content
+  - mcp__github__search_repo_files
+  - mcp__github__grep_file
   - mcp__github__search_issues
   - mcp__github__get_issue
   - mcp__github__get_issue_comments
