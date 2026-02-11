@@ -13,7 +13,8 @@ description: GitHub API search and exploration tools
 | `mcp__github__search_code` | Find code snippets across GitHub |
 | `mcp__github__get_repo` | Get repository metadata (topics, license, etc.) |
 | `mcp__github__get_repo_tree` | Browse repository file structure |
-| `mcp__github__get_file_content` | Read file contents from a repo |
+| `mcp__github__get_file_content` | Read file contents from a repo (supports offset/limit for line ranges) |
+| `mcp__github__grep_file` | Search file content by regex pattern |
 | `mcp__github__search_repo_files` | Find files by name pattern (glob) |
 | `mcp__github__search_issues` | Find issues across repositories |
 | `mcp__github__get_issue` | Get single issue details |
@@ -152,11 +153,37 @@ Read file contents from a repository.
 | `repo` | string | Yes | Repository name |
 | `path` | string | Yes | File path (e.g., "src/main.py") |
 | `metadata_only` | bool | No | If true, return only file metadata (name, size, type, SHA, URL) without content. Use to check file existence or size without downloading. Default: false |
+| `offset` | int | No | Start line (0-based, default: 0). Use with limit for line range reading |
+| `limit` | int | No | Number of lines to return (default: 0 = all lines). Use to read specific portions of large files |
 
 **Example:**
 ```
 mcp__github__get_file_content(owner="fastmcp", repo="fastmcp", path="README.md")
 mcp__github__get_file_content(owner="user", repo="repo", path="large_file.csv", metadata_only=True)
+mcp__github__get_file_content(owner="user", repo="repo", path="data.csv", offset=0, limit=10)
+```
+
+---
+
+### `mcp__github__grep_file`
+
+Search file content by regex pattern. Returns matching lines with line numbers.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `owner` | string | Yes | Repository owner |
+| `repo` | string | Yes | Repository name |
+| `path` | string | Yes | File path to search in |
+| `pattern` | string | Yes | Regex pattern to match against each line |
+| `context_lines` | int | No | Lines of context before/after each match (like grep -C). Default: 0 |
+| `max_matches` | int | No | Maximum number of matches to return. Default: 50 |
+
+**Example:**
+```
+mcp__github__grep_file(owner="user", repo="repo", path="data.csv", pattern="Q13.*?;0;")
+mcp__github__grep_file(owner="user", repo="repo", path="config.py", pattern="API_KEY", context_lines=2)
 ```
 
 ---

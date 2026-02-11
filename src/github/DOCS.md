@@ -58,21 +58,27 @@ Transforms raw tree into human-readable text output. When depth > 0, filters ite
 
 ## get_file_content.py
 
-**Purpose:** Retrieve and decode file content from GitHub repositories, or return metadata only.
-**Input:** owner, repo name, file path, optional metadata_only flag
+**Purpose:** Retrieve and decode file content from GitHub repositories, with optional line range and metadata-only mode.
+**Input:** owner, repo name, file path, optional metadata_only flag, optional offset/limit for line range
 **Output:** Human-readable formatted text displaying file content with metadata, or metadata only when metadata_only=True
 
 ### get_file_content_workflow()
-Main orchestrator that coordinates file retrieval. Accepts metadata_only parameter (default False). Calls fetch_file_content to get raw API response, then selects formatter: format_metadata (metadata only) or format_file_response (full content). Returns formatted text string.
+Main orchestrator that coordinates file retrieval. Accepts metadata_only (default False), offset (default 0), and limit (default 0) parameters. Checks if API response is a list (directory) or dict (file). For directories: returns format_dir_metadata when metadata_only=True, raises ValueError otherwise. For files: selects format_metadata (metadata only) or format_file_response (content with optional line range). Returns formatted text string.
 
 ### fetch_file_content()
-Performs HTTP GET request to GitHub Contents API for specific file path. Returns raw JSON response containing base64-encoded content and metadata.
+Performs HTTP GET request to GitHub Contents API for specific file path. Returns raw JSON response: dict for files (base64-encoded content and metadata), list for directories (array of entry dicts with name, path, size, type, sha, html_url).
+
+### format_dir_metadata()
+Formats directory metadata from Contents API list response. Counts entries by type (dirs vs files). Returns formatted text with path, type, and entry counts. Used when metadata_only=True on a directory path.
 
 ### format_metadata()
-Extracts only metadata fields from API response: path, name, size, type, sha, html_url. No base64 decoding. Use for existence checks or size queries without downloading content.
+Extracts only metadata fields from file API response: path, name, size, type, sha, html_url. No base64 decoding. Use for existence checks or size queries without downloading content.
 
 ### format_file_response()
-Validates response type is "file" (not directory). Decodes base64 content to UTF-8 string after removing newlines from base64 string. Raises ValueError if path is not a file. Returns formatted text string displaying file metadata (name, path, size, URL) followed by separator and decoded content.
+Validates response type is "file" (not directory). Calls decode_content to get UTF-8 string, then applies optional offset/limit line range. Always shows total line count in metadata. When offset or limit are set, shows which lines are being returned. Raises ValueError if path is not a file. Returns formatted text string displaying file metadata (name, path, size, lines info, URL) followed by separator and content.
+
+### decode_content()
+Decodes base64 file content to UTF-8 string after removing newlines from base64 string. Returns raw content string if encoding is not base64. Shared by format_file_response and grep_file module.
 
 ## search_repo_files.py
 
@@ -88,6 +94,21 @@ Filters tree items (blobs only) using fnmatch. When pattern contains "/" matches
 
 ### format_matches()
 Transforms matched items into human-readable text output. Displays search pattern, scope, match count, and each file with path and size in bytes.
+
+## grep_file.py
+
+**Purpose:** Search file content by regex pattern, returning only matching lines with optional context.
+**Input:** owner, repo name, file path, regex pattern, optional context_lines, optional max_matches
+**Output:** Human-readable formatted text listing matching lines with line numbers
+
+### grep_file_workflow()
+Main orchestrator that coordinates file grep. Calls fetch_file_content and decode_content from get_file_content module. Splits content into lines, searches with regex, and formats results. Raises ValueError if path is a directory. Returns formatted text string with matching lines.
+
+### search_lines()
+Finds lines matching compiled regex pattern. Collects match indices, then builds result dicts with match line index and context range (start/end based on context_lines parameter). Returns up to max_matches results, each containing line numbers and text for the match and surrounding context lines.
+
+### format_grep_response()
+Transforms match results into human-readable text output. Displays file path, total line count, pattern, and match count. Each match shows line number and content, with ">" marker on the actual match line and " " on context lines. Context groups separated by "---".
 
 ## search_issues.py
 
