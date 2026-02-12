@@ -21,7 +21,7 @@ tools:
   - mcp__github__search_discussions
   - mcp__github__list_discussions
   - mcp__github__get_discussion
-  color: green
+color: green
 ---
 
 You are a GitHub search specialist. Your task is to find repositories, code, issues, and pull requests using the GitHub MCP tools.

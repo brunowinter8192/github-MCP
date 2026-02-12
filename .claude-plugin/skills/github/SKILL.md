@@ -67,6 +67,8 @@ If the user says "look around", "explore", "what's out there" → exploratory.
 
 **Usage:** `Task(subagent_type="github-search", prompt="...")`
 
+**Troubleshooting:** If `subagent_type` not found: run `/context` to check registered agents. If agent is missing, compare its frontmatter (`.claude/agents/<name>.md`) with a working agent — YAML indentation errors silently break registration.
+
 **PROHIBITED:** Never use `subagent_type="general-purpose"` or other generic agents for GitHub repo searches. The `github-search` agent has dedicated instructions (`.claude/agents/github-search.md`) with MCP tool knowledge and the FILE/VALUE/EVIDENCE output format. Generic agents lack this context and produce unstructured output.
 
 ### Workflow: Dispatch First → Verify
