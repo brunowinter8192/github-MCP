@@ -53,6 +53,9 @@ Example: `grep_repo(path="Dynamic")` truncated → spawn subagent:
 "Search for value 48.5 in CSV files under Prediction_Methods/Dynamic/Runtime_Prediction.
 Drill into subdirectories with depth=1 first, then grep_repo with narrow path."
 
+**7. Session context before new searches.**
+Before making new tool calls, check if the referenced data was already read in this session. New claims often reference the same source files as previous ones (e.g., a later thesis section summarizing selection results you already verified). Re-reading known files wastes tool calls and risks misinterpreting which file to look for.
+
 **Detection:** If the user references specific data (table, number, file, claim) → targeted.
 If the user says "look around", "explore", "what's out there" → exploratory.
 
@@ -64,29 +67,34 @@ If the user says "look around", "explore", "what's out there" → exploratory.
 
 **Usage:** `Task(subagent_type="github-search", prompt="...")`
 
-### Workflow: Overview → Dispatch → Verify
+**PROHIBITED:** Never use `subagent_type="general-purpose"` or other generic agents for GitHub repo searches. The `github-search` agent has dedicated instructions (`.claude/agents/github-search.md`) with MCP tool knowledge and the FILE/VALUE/EVIDENCE output format. Generic agents lack this context and produce unstructured output.
 
-**CRITICAL:** Do NOT manually search through repos with 5+ tool calls. Follow this workflow:
+### Workflow: Dispatch First → Verify
 
-**1. Overview (you, 2-3 tool calls max)**
-- `get_repo_tree(depth=1)` on relevant directories
-- Read README/DOCS if structure is unclear
-- Goal: Understand enough to prompt the sub effectively
+**CRITICAL:** Always dispatch the sub FIRST. Do NOT start searching yourself — once you start, you tend to keep going instead of delegating.
 
-**2. Dispatch (subagent)**
-- Provide the overview context in the prompt (directory names, file patterns, what to look for)
-- Sub does the heavy searching: drilling into directories, reading CSVs, counting rows
+**1. Dispatch (subagent)**
+- Dispatch immediately with all available session context (directory structure, file patterns, what to look for)
+- Include known paths from earlier calls (Rule 7) — saves the sub redundant overview work
+- Sub does the heavy searching: drilling into directories, reading DOCS, finding CSVs, extracting data
 - Sub returns: file paths + concrete data (numbers, counts, content extracts)
+- Sub either FINDS the data → you verify, or reports clearly WHAT was checked and WHY it didn't match → you build on that
 
-**3. Verify (you)**
+**2. Verify (you)**
 - Double-check critical findings with `get_file_content` or `grep_file`
 - Never trust sub numbers blindly — spot-check at least the key claims
 - Present verified results to user
 
-**Anti-pattern (what went wrong before):**
-You manually did 8+ sequential tool calls (tree → tree → tree → read → read → tree → tree → read) navigating a repo. After 3 tool calls without a clear answer, you should have dispatched a sub.
+**When to skip the sub (do it yourself):**
+- Single file lookup where you know the exact path
+- 1-2 targeted tool calls that will definitively answer the question
+- Data you already have in session context (Rule 7)
 
-**Rule of thumb:** If you've done 3 tool calls on the same search task and still need more → dispatch a sub.
+**3. Iterate (when claims remain unverified)**
+- After Verify, present results including NOT VERIFIED claims — this gives the user a chance to redirect
+- When user confirms to continue: dispatch a SECOND sub with accumulated context (not manual search)
+- Include everything you now know: verified file paths, directory listings, which files exist in relevant directories
+- Each iteration narrows the search: first sub does broad search, second sub targets gaps
 
 ### When to Use
 
