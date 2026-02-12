@@ -48,12 +48,11 @@ GitHub API tools for Claude Code - search repos, code, issues, PRs.
 | `get_repo` | Get repo metadata |
 | `get_repo_tree` | Browse repo structure |
 | `get_file_content` | Read file content (with offset/limit) |
-| `search_repo_files` | Find files by name pattern (glob) |
 | `grep_file` | Search file content by regex |
-| `search_issues` | Find issues |
+| `grep_repo` | Search file content across repo by file pattern |
+| `search_items` | Find issues or PRs |
 | `get_issue` | Get issue details |
 | `get_issue_comments` | Get issue comments |
-| `search_prs` | Find pull requests |
 | `list_repo_prs` | List repo PRs |
 | `get_pr` | Get PR details |
 | `get_pr_files` | Get PR changed files |

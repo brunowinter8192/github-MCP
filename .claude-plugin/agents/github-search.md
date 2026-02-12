@@ -10,13 +10,11 @@ tools:
   - mcp__github__get_repo
   - mcp__github__get_repo_tree
   - mcp__github__get_file_content
-  - mcp__github__search_repo_files
   - mcp__github__grep_file
   - mcp__github__grep_repo
-  - mcp__github__search_issues
+  - mcp__github__search_items
   - mcp__github__get_issue
   - mcp__github__get_issue_comments
-  - mcp__github__search_prs
   - mcp__github__list_repo_prs
   - mcp__github__get_pr
   - mcp__github__get_pr_files
@@ -80,14 +78,14 @@ Query 3: "fastapi oauth2 jwt language:python stars:>50" -> 12 results, focused
 
 ### Issue Investigation
 ```
-1. search_issues "error message repo:owner/repo" -> Find related issues
+1. search_items "error message repo:owner/repo" type="issue" -> Find related issues
 2. get_issue owner, repo, issue_number -> Read full issue
 3. get_issue_comments owner, repo, issue_number -> Read discussion
 ```
 
 ### PR Analysis
 ```
-1. search_prs "feature repo:owner/repo is:merged" -> Find relevant PRs
+1. search_items "feature repo:owner/repo is:merged" type="pr" -> Find relevant PRs
 2. get_pr owner, repo, pull_number -> Read PR details
 3. get_pr_files owner, repo, pull_number -> See what changed
 4. get_file_content owner, repo, "changed_file.py" -> Read current state

@@ -1,15 +1,25 @@
 # INFRASTRUCTURE
 import requests
+from fnmatch import fnmatch
+from os.path import basename
 from mcp.types import TextContent
 from src.github.client import GITHUB_API_BASE, build_headers
 
 MAX_TREE_CHARS = 1000
+PATTERN_RESULTS_LIMIT = 50
 
 
 # ORCHESTRATOR
-def get_repo_tree_workflow(owner: str, repo: str, path: str = "", depth: int = -1) -> list[TextContent]:
+def get_repo_tree_workflow(owner: str, repo: str, path: str = "", depth: int = -1, pattern: str = "") -> list[TextContent]:
     default_branch = fetch_default_branch(owner, repo)
     tree_sha = get_tree_sha(owner, repo, default_branch, path)
+
+    if pattern:
+        raw_tree = fetch_tree(owner, repo, tree_sha, recursive=True)
+        truncated = raw_tree.get("truncated", False)
+        matches = filter_by_pattern(raw_tree, pattern)
+        return [TextContent(type="text", text=format_matches(matches, pattern, path, truncated))]
+
     recursive = depth != 1
     raw_tree = fetch_tree(owner, repo, tree_sha, recursive)
     formatted_string = format_tree_response(raw_tree, path, depth)
@@ -111,4 +121,36 @@ def format_tree_response(raw_tree: dict, base_path: str, depth: int = -1) -> str
         lines.append("Use 'path' parameter or 'depth=1' to narrow results.\n")
 
     lines.extend(content_lines)
+    return "\n".join(lines)
+
+
+# Filter tree items by glob pattern against filename or full path
+def filter_by_pattern(raw_tree: dict, pattern: str) -> list[dict]:
+    items = [item for item in raw_tree.get("tree", []) if item["type"] == "blob"]
+    has_slash = "/" in pattern
+    return [
+        item for item in items
+        if fnmatch(item["path"] if has_slash else basename(item["path"]), pattern)
+    ][:PATTERN_RESULTS_LIMIT]
+
+
+# Format matching files as text output
+def format_matches(matches: list[dict], pattern: str, base_path: str, truncated: bool = False) -> str:
+    lines = []
+    scope = base_path if base_path else "/"
+    lines.append(f"Search: \"{pattern}\" in {scope}\n")
+
+    if truncated:
+        lines.append("WARNING: Repository tree was truncated by GitHub API. Results may be incomplete.")
+        lines.append("Use the 'path' parameter to search within a specific directory for complete results.\n")
+
+    if not matches:
+        lines.append("No files found.")
+        return "\n".join(lines)
+
+    lines.append(f"Matches ({len(matches)}):")
+    for item in matches:
+        size = item.get("size", 0)
+        lines.append(f"  {item['path']} ({size:,} bytes)")
+
     return "\n".join(lines)

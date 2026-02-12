@@ -43,7 +43,7 @@ Editable files for Process Improvements in RECAP/IMPROVE phase:
 - ALWAYS edit `.claude/` files, NEVER `.claude-plugin/` directly
 - `.claude-plugin/` is the distribution folder for `plugin install` — auto-generated
 - Hook runs on every `git commit` — no manual sync needed
-- New tools MUST be registered in 3 places: `server.py`, `.claude/skills/github/SKILL.md`, `.claude/agents/github-search.md`
+- New tools MUST be registered in 5 places: `server.py`, `.claude/skills/github/SKILL.md`, `.claude/agents/github-search.md`, `src/github/DOCS.md`, `README.md`
 
 ### Testing
 
@@ -112,6 +112,7 @@ if __name__ == "__main__":
 - Each tool delegates to module orchestrator
 - Literal for enum-like choices
 - Returns list[TextContent] for MCP compatibility
+- **Merge-First:** Before adding a new tool, check if an existing tool can absorb the functionality via an additional parameter. Fewer tools = less context overhead for the model. Only create a separate tool when the use case, API endpoint, or output format is fundamentally different.
 
 ---
 

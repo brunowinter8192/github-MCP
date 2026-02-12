@@ -37,12 +37,12 @@ Processes text_matches array from API response. Filters for matches on content a
 
 ## get_repo_tree.py
 
-**Purpose:** Traverse repository structure with lazy loading to handle large repositories.
-**Input:** owner, repo name, optional path for sub-tree exploration, optional depth for tree depth limiting
-**Output:** Human-readable formatted text showing tree structure with root-level items prioritized and truncation warning if too large
+**Purpose:** Traverse repository structure with lazy loading to handle large repositories. Also supports file search by glob pattern.
+**Input:** owner, repo name, optional path for sub-tree exploration, optional depth for tree depth limiting, optional pattern for file name search
+**Output:** Human-readable formatted text showing tree structure (browse mode) or matching files (search mode)
 
 ### get_repo_tree_workflow()
-Main orchestrator that coordinates tree retrieval. First fetches default branch name, then gets tree SHA for specified path. Determines recursive mode based on depth parameter (depth=1 skips recursive API call). Fetches tree and formats response with depth filtering and root-level prioritization. Returns formatted text string with tree items.
+Main orchestrator that coordinates tree retrieval. First fetches default branch name, then gets tree SHA for specified path. Two modes: when pattern is provided, always fetches recursive tree and filters by glob pattern using filter_by_pattern, returning matching files via format_matches. When no pattern, determines recursive mode based on depth parameter (depth=1 skips recursive API call), fetches tree and formats response with depth filtering and root-level prioritization. Returns formatted text string.
 
 ### fetch_default_branch()
 Gets default branch name for repository by querying repository metadata. Returns branch name string (e.g., "main" or "master").
@@ -55,6 +55,12 @@ Performs HTTP GET request to GitHub Git Trees API. Accepts recursive boolean par
 
 ### format_tree_response()
 Transforms raw tree into human-readable text output. Checks `truncated` flag from API response and prepends warning if tree was truncated by GitHub API. When depth > 0, filters items to only include paths with fewer than depth "/" separators. Sorts directories and files by path depth (root-level items first) to ensure shallow items are always visible within the 50-item display limit. Checks if formatted text exceeds MAX_TREE_CHARS (1000) and appends output truncation warning if needed. Two independent warnings: API truncation (incomplete data from GitHub) and output truncation (display limit exceeded). Returns formatted text string displaying directory path, directories list, and files list with sizes.
+
+### filter_by_pattern()
+Filters tree items (blobs only) using fnmatch. When pattern contains "/" matches against full path, otherwise matches against basename only. Returns up to PATTERN_RESULTS_LIMIT (50) matching items. Used by pattern search mode and by grep_repo module.
+
+### format_matches()
+Transforms matched items into human-readable text output. Accepts optional `truncated` flag — when True, prepends warning that results may be incomplete due to GitHub API tree truncation. Displays search pattern, scope, match count, and each file with path and size in bytes.
 
 ## get_file_content.py
 
@@ -80,29 +86,14 @@ Validates response type is "file" (not directory). Calls decode_content to get U
 ### decode_content()
 Decodes base64 file content to UTF-8 string after removing newlines from base64 string. Returns raw content string if encoding is not base64. Shared by format_file_response and grep_file module.
 
-## search_repo_files.py
-
-**Purpose:** Find files by name pattern (glob) in a GitHub repository.
-**Input:** owner, repo name, glob pattern, optional path to narrow search scope
-**Output:** Human-readable formatted text listing matching files with sizes
-
-### search_repo_files_workflow()
-Main orchestrator that coordinates file search. Reuses fetch_default_branch, get_tree_sha, and fetch_tree from get_repo_tree module. Fetches full recursive tree, checks `truncated` flag from API response, filters by glob pattern, and formats matches with truncation warning if needed. Returns formatted text string with matching file list.
-
-### filter_by_pattern()
-Filters tree items (blobs only) using fnmatch. When pattern contains "/" matches against full path, otherwise matches against basename only. Returns up to RESULTS_LIMIT (50) matching items.
-
-### format_matches()
-Transforms matched items into human-readable text output. Accepts optional `truncated` flag — when True, prepends warning that results may be incomplete due to GitHub API tree truncation. Displays search pattern, scope, match count, and each file with path and size in bytes.
-
 ## grep_repo.py
 
-**Purpose:** Search file content across a repository by file name pattern. Combines search_repo_files (find files by glob) + grep_file logic (search content by regex).
+**Purpose:** Search file content across a repository by file name pattern. Combines get_repo_tree's filter_by_pattern (find files by glob) + grep_file logic (search content by regex).
 **Input:** owner, repo name, regex pattern, file glob pattern, optional path scope, max_files limit
 **Output:** Human-readable formatted text listing matches per file with line numbers
 
 ### grep_repo_workflow()
-Main orchestrator that coordinates repo-wide content search. Reuses fetch_default_branch, get_tree_sha, and fetch_tree from get_repo_tree module. Filters files by glob pattern using filter_by_pattern from search_repo_files. For each matching file (up to max_files), fetches content and searches with regex using search_lines from grep_file. Includes truncation warning if tree was truncated. Returns formatted text string with per-file match results.
+Main orchestrator that coordinates repo-wide content search. Reuses fetch_default_branch, get_tree_sha, fetch_tree, and filter_by_pattern from get_repo_tree module. For each matching file (up to max_files), fetches content and searches with regex using search_lines from grep_file. Includes truncation warning if tree was truncated. Returns formatted text string with per-file match results.
 
 ### grep_matching_files()
 Iterates over matching file list, fetches each file via fetch_file_content + decode_content, then runs search_lines with the regex pattern. Skips directories. Returns list of result dicts with path, matches, and total_lines per file.
@@ -125,23 +116,23 @@ Finds lines matching compiled regex pattern. Collects match indices, then builds
 ### format_grep_response()
 Transforms match results into human-readable text output. Displays file path, total line count, pattern, and match count. Each match shows line number and content, with ">" marker on the actual match line and " " on context lines. Context groups separated by "---".
 
-## search_issues.py
+## search_items.py
 
-**Purpose:** Search GitHub issues using the Search Issues API.
-**Input:** query string with optional qualifiers, sort_by parameter
-**Output:** Human-readable formatted text listing 20 issues with metadata for direct issue access
+**Purpose:** Search GitHub issues or pull requests using the Search Issues API with type parameter.
+**Input:** query string with optional qualifiers, type ("issue" or "pr"), sort_by parameter
+**Output:** Human-readable formatted text listing 20 items with metadata for direct access
 
-### search_issues_workflow()
-Main orchestrator that coordinates issue search. Builds query with is:issue qualifier by default, calls fetch_issues to get raw API data, then format_issue_results to extract relevant fields. Returns formatted text string with issue listings.
+### search_items_workflow()
+Main orchestrator that coordinates item search. Builds query with is:issue or is:pr qualifier based on type parameter, calls fetch_items to get raw API data, then format_item_results to extract relevant fields. Returns formatted text string with item listings.
 
 ### build_query()
-Adds is:issue qualifier to search query if not already present. Allows explicit is:pr to include pull requests. Returns modified query string.
+Adds is:issue or is:pr qualifier to search query based on type parameter. Handles edge cases: replaces conflicting qualifiers, preserves explicit qualifiers. Returns modified query string.
 
-### fetch_issues()
-Performs HTTP GET request to GitHub Search Issues API. Constructs URL with query parameters for search term, sort order, and pagination. Sets appropriate headers for API version. Returns raw JSON response.
+### fetch_items()
+Performs HTTP GET request to GitHub Search Issues API. Constructs URL with query parameters for search term, sort order, and pagination. Returns raw JSON response.
 
-### format_issue_results()
-Transforms raw API response into human-readable text output. Extracts repository info from repository_url, issue number, title, state, author, comments count, labels, and html_url from each issue. Returns formatted text string listing issues with metadata and tool hints for direct access.
+### format_item_results()
+Transforms raw API response into human-readable text output. Extracts repository info, item number, title, state, author, comments count, labels, and URL. For PRs: detects MERGED state via pull_request.merged_at field. Appends type-specific tool hints (get_issue or get_pr) for direct access.
 
 ## get_issue.py
 
@@ -172,24 +163,6 @@ Performs HTTP GET request to GitHub Issue Comments API. Returns array of comment
 
 ### format_comments()
 Transforms raw API response into human-readable text output. Lists total comment count, then each comment with author, date, and full body. Returns formatted text string displaying discussion thread.
-
-## search_prs.py
-
-**Purpose:** Search GitHub pull requests using the Search Issues API with is:pr qualifier.
-**Input:** query string with optional qualifiers, sort_by parameter
-**Output:** Human-readable formatted text listing 20 PRs with metadata for direct PR access
-
-### search_prs_workflow()
-Main orchestrator that coordinates PR search. Builds query with is:pr qualifier, calls fetch_prs to get raw API data, then format_pr_results to extract relevant fields. Returns formatted text string with PR listings.
-
-### build_query()
-Adds is:pr qualifier to search query if not already present. Replaces is:issue with is:pr if found. Returns modified query string.
-
-### fetch_prs()
-Performs HTTP GET request to GitHub Search Issues API. Constructs URL with query parameters for search term, sort order, and pagination. Returns raw JSON response.
-
-### format_pr_results()
-Transforms raw API response into human-readable text output. Extracts repository info, PR number, title, state (including MERGED detection), author, comments count, labels, and html_url. Returns formatted text string with tool hints for direct access.
 
 ## list_repo_prs.py
 

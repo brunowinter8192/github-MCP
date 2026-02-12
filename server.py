@@ -11,13 +11,11 @@ from src.github.search_repos import search_repos_workflow
 from src.github.search_code import search_code_workflow
 from src.github.get_repo_tree import get_repo_tree_workflow
 from src.github.get_file_content import get_file_content_workflow
-from src.github.search_repo_files import search_repo_files_workflow
 from src.github.grep_file import grep_file_workflow
 from src.github.grep_repo import grep_repo_workflow
-from src.github.search_issues import search_issues_workflow
+from src.github.search_items import search_items_workflow
 from src.github.get_issue import get_issue_workflow
 from src.github.get_issue_comments import get_issue_comments_workflow
-from src.github.search_prs import search_prs_workflow
 from src.github.list_repo_prs import list_repo_prs_workflow
 from src.github.get_pr import get_pr_workflow
 from src.github.get_pr_files import get_pr_files_workflow
@@ -47,21 +45,15 @@ def search_code(query: str) -> list[TextContent]:
 
 
 @mcp.tool
-def get_repo_tree(owner: str, repo: str, path: str = "", depth: int = -1) -> list[TextContent]:
+def get_repo_tree(owner: str, repo: str, path: str = "", depth: int = -1, pattern: str = "") -> list[TextContent]:
     """Get repo tree. Use to browse repository structure before reading specific files."""
-    return get_repo_tree_workflow(owner, repo, path, depth)
+    return get_repo_tree_workflow(owner, repo, path, depth, pattern)
 
 
 @mcp.tool
 def get_file_content(owner: str, repo: str, path: str, metadata_only: bool = False, offset: int = 0, limit: int = 0) -> list[TextContent]:
     """Get file content. Use after browsing repo tree to read specific files."""
     return get_file_content_workflow(owner, repo, path, metadata_only, offset, limit)
-
-
-@mcp.tool
-def search_repo_files(owner: str, repo: str, pattern: str, path: str = "") -> list[TextContent]:
-    """Find files by name pattern (glob) in a repository."""
-    return search_repo_files_workflow(owner, repo, pattern, path)
 
 
 @mcp.tool
@@ -77,12 +69,13 @@ def grep_repo(owner: str, repo: str, pattern: str, file_pattern: str = "*.csv", 
 
 
 @mcp.tool
-def search_issues(
+def search_items(
     query: str,
+    type: Literal["issue", "pr"],
     sort_by: Literal["comments", "reactions", "created", "updated", "best_match"] = "best_match"
 ) -> list[TextContent]:
-    """Search issues. Use to find bug reports, feature requests, or discussions."""
-    return search_issues_workflow(query, sort_by)
+    """Search issues or PRs. Use to find bug reports, feature requests, or code changes."""
+    return search_items_workflow(query, type, sort_by)
 
 
 @mcp.tool
@@ -95,15 +88,6 @@ def get_issue(owner: str, repo: str, issue_number: int) -> list[TextContent]:
 def get_issue_comments(owner: str, repo: str, issue_number: int) -> list[TextContent]:
     """Get issue comments. Use to read the discussion thread on an issue."""
     return get_issue_comments_workflow(owner, repo, issue_number)
-
-
-@mcp.tool
-def search_prs(
-    query: str,
-    sort_by: Literal["comments", "reactions", "created", "updated", "best_match"] = "best_match"
-) -> list[TextContent]:
-    """Search PRs. Use to find code changes, fixes, or feature implementations."""
-    return search_prs_workflow(query, sort_by)
 
 
 @mcp.tool

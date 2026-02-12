@@ -1,9 +1,8 @@
 # INFRASTRUCTURE
-import os
 import requests
+from src.github.client import GITHUB_TOKEN
 
 GITHUB_GRAPHQL = "https://api.github.com/graphql"
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 
 
 # FUNCTIONS

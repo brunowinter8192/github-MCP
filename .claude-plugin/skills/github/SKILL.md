@@ -16,11 +16,9 @@ description: GitHub API search and exploration tools
 | `mcp__github__get_file_content` | Read file contents from a repo (supports offset/limit for line ranges) |
 | `mcp__github__grep_file` | Search file content by regex pattern |
 | `mcp__github__grep_repo` | Search file content across repo by file pattern |
-| `mcp__github__search_repo_files` | Find files by name pattern (glob) |
-| `mcp__github__search_issues` | Find issues across repositories |
+| `mcp__github__search_items` | Find issues or PRs across repositories |
 | `mcp__github__get_issue` | Get single issue details |
 | `mcp__github__get_issue_comments` | Get comments on an issue |
-| `mcp__github__search_prs` | Find pull requests across repositories |
 | `mcp__github__list_repo_prs` | List PRs in a specific repo |
 | `mcp__github__get_pr` | Get single PR details |
 | `mcp__github__get_pr_files` | Get files changed in a PR |
@@ -79,38 +77,22 @@ Always note the file path, not just the repo name.
 
 ---
 
-### `mcp__github__search_issues`
+### `mcp__github__search_items`
 
-Find issues across repositories.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `query` | string | Yes | Issue search query (e.g., "bug is:open repo:owner/repo") |
-| `sort_by` | string | No | Sort by: comments, reactions, created, updated, best_match (default) |
-
-**Example:**
-```
-mcp__github__search_issues(query="memory leak is:open language:python", sort_by="reactions")
-```
-
----
-
-### `mcp__github__search_prs`
-
-Find pull requests across repositories.
+Find issues or pull requests across repositories.
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `query` | string | Yes | PR search query (e.g., "fix is:merged repo:owner/repo") |
+| `query` | string | Yes | Search query with GitHub qualifiers (e.g., "bug is:open repo:owner/repo") |
+| `type` | string | Yes | Item type: "issue" or "pr" |
 | `sort_by` | string | No | Sort by: comments, reactions, created, updated, best_match (default) |
 
 **Example:**
 ```
-mcp__github__search_prs(query="feature is:open repo:anthropics/claude-code", sort_by="updated")
+mcp__github__search_items(query="memory leak is:open language:python", type="issue", sort_by="reactions")
+mcp__github__search_items(query="feature is:merged repo:anthropics/claude-code", type="pr", sort_by="updated")
 ```
 
 ---
@@ -129,15 +111,19 @@ Browse repository file structure.
 | `repo` | string | Yes | Repository name (e.g., "claude-code") |
 | `path` | string | No | Subdirectory path (default: root) |
 | `depth` | int | No | Tree depth: -1 = full recursive (default), 1 = direct children only, N = limit to N levels |
+| `pattern` | string | No | Glob pattern to find files by name (e.g., "*.csv", "*runtime*"). When set, returns matching files instead of tree. Matches against basename by default; use "/" in pattern to match full path |
 
 **Notes:**
-- Results are sorted by depth: root-level files/dirs appear first, deeper items after
+- Without `pattern`: browse mode — results sorted by depth, dirs and files listed separately
+- With `pattern`: search mode — returns matching files only (up to 50), always recursive regardless of `depth`
 - Use `depth=1` to see only immediate contents of a directory (avoids flooding from deep subdirectories)
 
 **Example:**
 ```
 mcp__github__get_repo_tree(owner="fastmcp", repo="fastmcp", path="src")
 mcp__github__get_repo_tree(owner="user", repo="big-repo", path="data", depth=1)
+mcp__github__get_repo_tree(owner="user", repo="repo", pattern="*.csv", path="data")
+mcp__github__get_repo_tree(owner="user", repo="repo", pattern="*histograms*")
 ```
 
 ---
@@ -191,7 +177,7 @@ mcp__github__grep_file(owner="user", repo="repo", path="config.py", pattern="API
 
 ### `mcp__github__grep_repo`
 
-Search file content across a repository by file name pattern. Combines `search_repo_files` (find files by glob) + `grep_file` (search content by regex). Use when `search_code` fails on data files (CSV, TSV, etc.).
+Search file content across a repository by file name pattern. Combines `get_repo_tree(pattern=...)` (find files by glob) + `grep_file` (search content by regex). Use when `search_code` fails on data files (CSV, TSV, etc.).
 
 **Parameters:**
 
@@ -210,27 +196,6 @@ Search file content across a repository by file name pattern. Combines `search_r
 ```
 mcp__github__grep_repo(owner="user", repo="repo", pattern="mean_actual_ms", file_pattern="*summary*", path="Evaluation")
 mcp__github__grep_repo(owner="user", repo="repo", pattern="def.*workflow", file_pattern="*.py")
-```
-
----
-
-### `mcp__github__search_repo_files`
-
-Find files by name pattern (glob) in a repository.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `owner` | string | Yes | Repository owner |
-| `repo` | string | Yes | Repository name |
-| `pattern` | string | Yes | Glob pattern to match filenames (e.g., "*.csv", "*runtime*"). Matches against basename by default; use "/" in pattern to match full path |
-| `path` | string | No | Subdirectory to search within (default: entire repo) |
-
-**Example:**
-```
-mcp__github__search_repo_files(owner="user", repo="repo", pattern="*histograms*")
-mcp__github__search_repo_files(owner="user", repo="repo", pattern="*.csv", path="data")
 ```
 
 ---
@@ -441,15 +406,23 @@ If after checking ALL candidates none matches, present all findings with their f
 Two fundamentally different search modes exist:
 
 - **Targeted search** (user asked for specific data, verification, comparison):
-  The user has context. ALWAYS ask the user for the concrete path/location FIRST.
-  Max 2-3 exploratory tool calls if path is ambiguous, then ask.
+  The user has context. Ask for path when genuinely ambiguous, but exhaust cheap self-serve options first:
+  1. `get_repo_tree(pattern="*keyword*")` or `grep_repo` to locate files directly
+  2. If file found but content doesn't match → **check same directory first** (`depth=1`) for variants (filtered, selected, final, summary...)
+  3. If same directory has nothing → broaden scope one level up
+  4. Only after 2-3 failed attempts → ask user
   Use existing context (beads, conversation history) as navigation hints.
-  Example: "Verify Table 5.2 numbers" → Ask "Which directory?" before navigating.
 
 - **Exploratory search** (discover trends, compare repos, survey landscape):
   The user has no specific target. Navigate freely with tools.
   Drill down via get_repo_tree, read READMEs, follow interesting leads.
   Example: "What are hot topics in Claude Code?" → Browse repos, read discussions.
+
+**5. Filename search before content search.**
+When looking for a specific example or report, search by the broadest known identifier in the filename FIRST (e.g., template name, query ID), not by specific content details (e.g., node IDs, exact values).
+- `get_repo_tree(pattern="*Q8*", path="Predictions/")` → finds all Q8 reports in one call
+- `grep_repo(pattern="13408", file_pattern="*.md")` → may miss due to `max_files` limit
+Also: when using `grep_repo` on directories with many files, increase `max_files` beyond the default 10.
 
 **Detection:** If the user references specific data (table, number, file, claim) → targeted.
 If the user says "look around", "explore", "what's out there" → exploratory.
@@ -485,7 +458,7 @@ If the user says "look around", "explore", "what's out there" → exploratory.
 
 ### Known Limitations
 
-**`search_repo_files` — truncation warning on large repos (Issue #1):**
+**`get_repo_tree` — truncation warning on large repos (Issue #1):**
 - GitHub Git Trees API truncates at ~100k entries
 - Tool now warns when `truncated=true` in API response
 - **Workaround:** Use `path` parameter to narrow search scope — smaller subtree avoids truncation
@@ -497,7 +470,7 @@ If the user says "look around", "explore", "what's out there" → exploratory.
 
 **Data files in large repos:**
 - Use `grep_repo(pattern="search_term", file_pattern="*.csv", path="subdir")` for content search in data files
-- `grep_repo` combines `search_repo_files` + `grep_file` automatically
+- `grep_repo` combines `get_repo_tree(pattern=...)` + `grep_file` automatically
 
 ### Searching for Values
 

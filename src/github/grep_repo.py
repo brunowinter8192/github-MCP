@@ -2,7 +2,7 @@
 import re
 from mcp.types import TextContent
 from src.github.get_repo_tree import fetch_default_branch, get_tree_sha, fetch_tree
-from src.github.search_repo_files import filter_by_pattern
+from src.github.get_repo_tree import filter_by_pattern
 from src.github.get_file_content import fetch_file_content, decode_content
 from src.github.grep_file import search_lines
 
