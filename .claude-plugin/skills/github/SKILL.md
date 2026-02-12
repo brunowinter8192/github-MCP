@@ -3,388 +3,9 @@ name: gh-search
 description: GitHub API search and exploration tools
 ---
 
-# GitHub MCP Tools
+# GitHub MCP Tools — Search Strategy
 
-## Available Tools
-
-| Tool | Purpose |
-|------|---------|
-| `mcp__github__search_repos` | Find repositories by keywords, stars, language |
-| `mcp__github__search_code` | Find code snippets across GitHub |
-| `mcp__github__get_repo` | Get repository metadata (topics, license, etc.) |
-| `mcp__github__get_repo_tree` | Browse repository file structure |
-| `mcp__github__get_file_content` | Read file contents from a repo (supports offset/limit for line ranges) |
-| `mcp__github__grep_file` | Search file content by regex pattern |
-| `mcp__github__grep_repo` | Search file content across repo by file pattern |
-| `mcp__github__search_items` | Find issues or PRs across repositories |
-| `mcp__github__get_issue` | Get single issue details |
-| `mcp__github__get_issue_comments` | Get comments on an issue |
-| `mcp__github__list_repo_prs` | List PRs in a specific repo |
-| `mcp__github__get_pr` | Get single PR details |
-| `mcp__github__get_pr_files` | Get files changed in a PR |
-| `mcp__github__search_discussions` | Find discussions across GitHub |
-| `mcp__github__list_discussions` | List discussions in a specific repo |
-| `mcp__github__get_discussion` | Get discussion with comments |
-
----
-
-## Search Tools
-
-### `mcp__github__search_repos`
-
-Find repositories matching search criteria.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `query` | string | Yes | Search query with GitHub qualifiers (e.g., "fastapi stars:>1000 language:python") |
-| `sort_by` | string | No | Sort by: stars, forks, updated, best_match (default) |
-
-**Example:**
-```
-mcp__github__search_repos(query="mcp server language:python", sort_by="stars")
-```
-
----
-
-### `mcp__github__search_code`
-
-Find code snippets across all public repositories.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `query` | string | Yes | Code search query (e.g., "FastMCP language:python") |
-
-**Example:**
-```
-mcp__github__search_code(query="@mcp.tool language:python")
-```
-
-**Output Parsing:**
-
-Code search returns file paths - extract them for your output:
-```
-search_code("@mcp.tool language:python")
-→ Returns: st3v3nmw/sourcerer-mcp - internal/mcp/server.go
-→ Note path: internal/mcp/server.go
-→ Include in output: "MCP tools in `internal/mcp/server.go`"
-```
-
-Always note the file path, not just the repo name.
-
----
-
-### `mcp__github__search_items`
-
-Find issues or pull requests across repositories.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `query` | string | Yes | Search query with GitHub qualifiers (e.g., "bug is:open repo:owner/repo") |
-| `type` | string | Yes | Item type: "issue" or "pr" |
-| `sort_by` | string | No | Sort by: comments, reactions, created, updated, best_match (default) |
-
-**Example:**
-```
-mcp__github__search_items(query="memory leak is:open language:python", type="issue", sort_by="reactions")
-mcp__github__search_items(query="feature is:merged repo:anthropics/claude-code", type="pr", sort_by="updated")
-```
-
----
-
-## Repository Tools
-
-### `mcp__github__get_repo_tree`
-
-Browse repository file structure.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `owner` | string | Yes | Repository owner (e.g., "anthropics") |
-| `repo` | string | Yes | Repository name (e.g., "claude-code") |
-| `path` | string | No | Subdirectory path (default: root) |
-| `depth` | int | No | Tree depth: -1 = full recursive (default), 1 = direct children only, N = limit to N levels |
-| `pattern` | string | No | Glob pattern to find files by name (e.g., "*.csv", "*runtime*"). When set, returns matching files instead of tree. Matches against basename by default; use "/" in pattern to match full path |
-
-**Notes:**
-- Without `pattern`: browse mode — results sorted by depth, dirs and files listed separately
-- With `pattern`: search mode — returns matching files only (up to 50), always recursive regardless of `depth`
-- Use `depth=1` to see only immediate contents of a directory (avoids flooding from deep subdirectories)
-
-**Example:**
-```
-mcp__github__get_repo_tree(owner="fastmcp", repo="fastmcp", path="src")
-mcp__github__get_repo_tree(owner="user", repo="big-repo", path="data", depth=1)
-mcp__github__get_repo_tree(owner="user", repo="repo", pattern="*.csv", path="data")
-mcp__github__get_repo_tree(owner="user", repo="repo", pattern="*histograms*")
-```
-
----
-
-### `mcp__github__get_file_content`
-
-Read file contents from a repository.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `owner` | string | Yes | Repository owner |
-| `repo` | string | Yes | Repository name |
-| `path` | string | Yes | File path (e.g., "src/main.py") |
-| `metadata_only` | bool | No | If true, return only file metadata (name, size, type, SHA, URL) without content. Use to check file existence or size without downloading. Default: false |
-| `offset` | int | No | Start line (0-based, default: 0). Use with limit for line range reading |
-| `limit` | int | No | Number of lines to return (default: 0 = all lines). Use to read specific portions of large files |
-
-**Example:**
-```
-mcp__github__get_file_content(owner="fastmcp", repo="fastmcp", path="README.md")
-mcp__github__get_file_content(owner="user", repo="repo", path="large_file.csv", metadata_only=True)
-mcp__github__get_file_content(owner="user", repo="repo", path="data.csv", offset=0, limit=10)
-```
-
----
-
-### `mcp__github__grep_file`
-
-Search file content by regex pattern. Returns matching lines with line numbers.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `owner` | string | Yes | Repository owner |
-| `repo` | string | Yes | Repository name |
-| `path` | string | Yes | File path to search in |
-| `pattern` | string | Yes | Regex pattern to match against each line |
-| `context_lines` | int | No | Lines of context before/after each match (like grep -C). Default: 0 |
-| `max_matches` | int | No | Maximum number of matches to return. Default: 50 |
-
-**Example:**
-```
-mcp__github__grep_file(owner="user", repo="repo", path="data.csv", pattern="Q13.*?;0;")
-mcp__github__grep_file(owner="user", repo="repo", path="config.py", pattern="API_KEY", context_lines=2)
-```
-
----
-
-### `mcp__github__grep_repo`
-
-Search file content across a repository by file name pattern. Combines `get_repo_tree(pattern=...)` (find files by glob) + `grep_file` (search content by regex). Use when `search_code` fails on data files (CSV, TSV, etc.).
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `owner` | string | Yes | Repository owner |
-| `repo` | string | Yes | Repository name |
-| `pattern` | string | Yes | Regex pattern to match against file content |
-| `file_pattern` | string | No | Glob pattern for file names (default: "*.csv") |
-| `path` | string | No | Subdirectory to scope search (default: repo root) |
-| `max_files` | int | No | Max files to search (default: 10, protects API rate) |
-
-**Note:** `max_files` limits how many files are searched (not found). If more files match the glob than `max_files`, the rest are skipped. Use `path` to narrow scope or increase `max_files` for complete results.
-
-**Example:**
-```
-mcp__github__grep_repo(owner="user", repo="repo", pattern="mean_actual_ms", file_pattern="*summary*", path="Evaluation")
-mcp__github__grep_repo(owner="user", repo="repo", pattern="def.*workflow", file_pattern="*.py")
-```
-
----
-
-## Issue Tools
-
-### `mcp__github__get_issue`
-
-Get details of a single issue.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `owner` | string | Yes | Repository owner |
-| `repo` | string | Yes | Repository name |
-| `issue_number` | int | Yes | Issue number |
-
-**Example:**
-```
-mcp__github__get_issue(owner="anthropics", repo="claude-code", issue_number=123)
-```
-
----
-
-### `mcp__github__get_issue_comments`
-
-Get all comments on an issue.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `owner` | string | Yes | Repository owner |
-| `repo` | string | Yes | Repository name |
-| `issue_number` | int | Yes | Issue number |
-
-**Example:**
-```
-mcp__github__get_issue_comments(owner="anthropics", repo="claude-code", issue_number=123)
-```
-
----
-
-## Pull Request Tools
-
-### `mcp__github__list_repo_prs`
-
-List pull requests in a specific repository.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `owner` | string | Yes | Repository owner |
-| `repo` | string | Yes | Repository name |
-| `state` | string | No | Filter by: open, closed, all (default: open) |
-| `sort_by` | string | No | Sort by: created, updated, popularity, long-running (default: created) |
-
-**Example:**
-```
-mcp__github__list_repo_prs(owner="anthropics", repo="claude-code", state="open", sort_by="updated")
-```
-
----
-
-### `mcp__github__get_pr`
-
-Get details of a single pull request.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `owner` | string | Yes | Repository owner |
-| `repo` | string | Yes | Repository name |
-| `pull_number` | int | Yes | PR number |
-
-**Example:**
-```
-mcp__github__get_pr(owner="anthropics", repo="claude-code", pull_number=456)
-```
-
----
-
-### `mcp__github__get_pr_files`
-
-Get list of files changed in a pull request.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `owner` | string | Yes | Repository owner |
-| `repo` | string | Yes | Repository name |
-| `pull_number` | int | Yes | PR number |
-
-**Example:**
-```
-mcp__github__get_pr_files(owner="anthropics", repo="claude-code", pull_number=456)
-```
-
----
-
-## Repository Tools
-
-### `mcp__github__get_repo`
-
-Get repository metadata including topics and license.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `owner` | string | Yes | Repository owner |
-| `repo` | string | Yes | Repository name |
-
-**Example:**
-```
-mcp__github__get_repo(owner="anthropics", repo="claude-code")
-```
-
----
-
-## Discussion Tools
-
-### `mcp__github__search_discussions`
-
-Find discussions across all public repositories (Q&A, ideas, announcements).
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `query` | string | Yes | Search query with GitHub qualifiers |
-| `first` | int | No | Number of results (default: 10, max: 100) |
-
-**Example:**
-```
-mcp__github__search_discussions(query="MCP server setup", first=5)
-```
-
----
-
-### `mcp__github__list_discussions`
-
-List discussions in a specific repository.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `owner` | string | Yes | Repository owner |
-| `repo` | string | Yes | Repository name |
-| `first` | int | No | Number of results (default: 10) |
-| `category` | string | No | Filter by category slug (e.g., "q-a", "ideas") |
-| `answered` | bool | No | Filter by answered status |
-
-**Example:**
-```
-mcp__github__list_discussions(owner="anthropics", repo="claude-code", category="q-a", answered=False)
-```
-
----
-
-### `mcp__github__get_discussion`
-
-Get full discussion with comments.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `owner` | string | Yes | Repository owner |
-| `repo` | string | Yes | Repository name |
-| `number` | int | Yes | Discussion number |
-| `comment_limit` | int | No | Max comments (default: 50) |
-| `comment_sort` | string | No | "upvotes" (default) or "chronological" |
-
-**Example:**
-```
-mcp__github__get_discussion(owner="anthropics", repo="claude-code", number=123, comment_sort="upvotes")
-```
-
----
-
-## Usage Strategy
-
-### Navigation Rules
+## Navigation Rules
 
 **1. DOCS first — always.**
 Before opening data files or CSVs in any directory, check for README.md or DOCS.md in that directory (or parent). Well-documented repos explain which files are authoritative and what each subdirectory contains. Skipping DOCS leads to reading the wrong file.
@@ -424,10 +45,99 @@ When looking for a specific example or report, search by the broadest known iden
 - `grep_repo(pattern="13408", file_pattern="*.md")` → may miss due to `max_files` limit
 Also: when using `grep_repo` on directories with many files, increase `max_files` beyond the default 10.
 
+**6. Truncation → spawn subagent.**
+When `grep_repo` or `get_repo_tree` returns a truncation warning, do NOT repeat with same scope.
+Instead: spawn a `github-search` subagent to search the truncated directory.
+The subagent can independently narrow scope by drilling into subdirectories.
+Example: `grep_repo(path="Dynamic")` truncated → spawn subagent:
+"Search for value 48.5 in CSV files under Prediction_Methods/Dynamic/Runtime_Prediction.
+Drill into subdirectories with depth=1 first, then grep_repo with narrow path."
+
 **Detection:** If the user references specific data (table, number, file, claim) → targeted.
 If the user says "look around", "explore", "what's out there" → exploratory.
 
-### Tool Selection
+## Subagent Dispatch (github-search)
+
+| Agent | subagent_type | Model | Output |
+|-------|---------------|-------|--------|
+| github-search | `github-search` | Haiku | Repos with file paths |
+
+**Usage:** `Task(subagent_type="github-search", prompt="...")`
+
+### When to Use
+
+- Finding repos by topic/technology
+- Searching code patterns across GitHub
+- Comparing multiple repos for a use case
+- Investigating issues/PRs in unknown repos
+- **API truncation** on large repos — agent can independently narrow scope and drill into subdirectories
+
+### When NOT to Use
+
+- You know the exact repo (use MCP tools directly)
+- Single file lookup in known repo
+- Simple targeted search where 1-2 tool calls suffice
+
+### How to Prompt
+
+**BAD:**
+- "Find semantic search repos" (too vague)
+- "Search vector databases" (no scope)
+
+**GOOD:**
+- "Find 3-5 Python repos for semantic search, stars >500"
+- "Search for FastMCP + embedding patterns, return implementation paths"
+- "Search for value 48.5 in CSV files under Prediction_Methods/Dynamic/Runtime_Prediction. Drill into subdirectories with depth=1 first, then grep_repo with narrow path."
+
+**Template:**
+```
+Research [TOPIC] on GitHub.
+
+Focus on:
+1. [Specific aspect 1]
+2. [Specific aspect 2]
+
+For each repo found:
+- Name, stars, description
+- Key implementation files (paths!)
+- [Specific evaluation criteria]
+```
+
+**Truncation Template:**
+```
+Search for [VALUE/PATTERN] in [REPO] under [TRUNCATED_PATH].
+
+Strategy:
+1. get_repo_tree(path="[TRUNCATED_PATH]", depth=1) to discover subdirectories
+2. grep_repo with narrow path on each subdirectory
+3. Report all matches with full file paths
+```
+
+### After Agent Returns
+
+**Agent = Scout with Paths**
+
+Agent provides:
+- WHERE: Repo + file paths
+- WHAT: Summary of capabilities
+
+**You can:**
+1. Present results directly to user
+2. For detail questions: `get_file_content` with provided paths
+3. Paths are verified (from `get_repo_tree` output)
+
+**Verification:**
+- [ ] Check at least 1 repo exists
+- [ ] Confirm file paths look valid
+- [ ] If agent provided summary: spot-check 1-2 details
+
+### Known Pitfalls (Haiku)
+
+1. **Missing Paths** — Agent may forget file paths. Fix: Explicitly ask "Include key implementation file paths"
+2. **Format Drift** — Agent uses own format instead of requested. Fix: Say "Use EXACTLY this format:" with template
+3. **Local Path Leak** — Agent may include local filesystem paths. Fix: Verify output contains only GitHub paths
+
+## Tool Selection
 
 | Goal | Primary Tool | Secondary |
 |------|--------------|-----------|
@@ -438,14 +148,14 @@ If the user says "look around", "explore", "what's out there" → exploratory.
 | Find Q&A/help | search_discussions | get_discussion |
 | Community insights | list_discussions | get_discussion |
 
-### Reading Priority (per repository)
+## Reading Priority (per repository)
 
 1. **README.md** - Overview, features, usage
 2. **package.json / pyproject.toml** - Dependencies, metadata
 3. **docs/ or examples/** - Usage patterns
 4. **src/** - Only if critical to answer question
 
-### Result Limits
+## Result Limits
 
 **search_repos / search_code:**
 - Fetch: Top 10-15 results
@@ -456,7 +166,7 @@ If the user says "look around", "explore", "what's out there" → exploratory.
 - Max 3-4 files (README + key sources)
 - Use get_repo_tree first to identify critical files
 
-### Known Limitations
+## Known Limitations
 
 **`get_repo_tree` — truncation warning on large repos (Issue #1):**
 - GitHub Git Trees API truncates at ~100k entries
@@ -472,12 +182,10 @@ If the user says "look around", "explore", "what's out there" → exploratory.
 - Use `grep_repo(pattern="search_term", file_pattern="*.csv", path="subdir")` for content search in data files
 - `grep_repo` combines `get_repo_tree(pattern=...)` + `grep_file` automatically
 
-### Searching for Values
+## Searching for Values
 
 When searching for numeric values in CSVs or data files:
 - **Stored format ≠ display format:** 6.74% is stored as `0.06741992...`
 - `search_code("6.74")` → 0 results. `search_code("0.0674")` → may also fail (CSV not indexed)
 - **Strategy:** Search for the column/metric name (e.g., `overall_mre`) instead of the value itself
 - **Best approach for data files:** `grep_repo` to search content across matching files
-
-
