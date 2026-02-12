@@ -30,7 +30,7 @@ Main orchestrator that coordinates code search. Calls fetch_code_search with tex
 Performs HTTP GET request to GitHub Search Code API. Uses special Accept header to request text-match metadata which provides code fragments. Returns raw JSON response with embedded text_matches arrays.
 
 ### format_code_results()
-Transforms raw API response into human-readable text output. Extracts repository metadata (owner, repo, full_name, description, stars) and file information (path, file_name, html_url) for each match. Calls extract_text_matches to process code fragments. Returns formatted text string listing code matches with file paths and first three code fragments per match.
+Transforms raw API response into human-readable text output. When no results found, appends a NOTE about GitHub Code Search not indexing data file types (CSV, TSV), suggesting grep_file or grep_repo as alternatives. Extracts repository metadata (owner, repo, full_name, description, stars) and file information (path, file_name, html_url) for each match. Calls extract_text_matches to process code fragments. Returns formatted text string listing code matches with file paths and first three code fragments per match.
 
 ### extract_text_matches()
 Processes text_matches array from API response. Filters for matches on content and path properties. Returns list of fragment objects showing where search terms appear in the code or file path.
@@ -94,6 +94,21 @@ Filters tree items (blobs only) using fnmatch. When pattern contains "/" matches
 
 ### format_matches()
 Transforms matched items into human-readable text output. Accepts optional `truncated` flag — when True, prepends warning that results may be incomplete due to GitHub API tree truncation. Displays search pattern, scope, match count, and each file with path and size in bytes.
+
+## grep_repo.py
+
+**Purpose:** Search file content across a repository by file name pattern. Combines search_repo_files (find files by glob) + grep_file logic (search content by regex).
+**Input:** owner, repo name, regex pattern, file glob pattern, optional path scope, max_files limit
+**Output:** Human-readable formatted text listing matches per file with line numbers
+
+### grep_repo_workflow()
+Main orchestrator that coordinates repo-wide content search. Reuses fetch_default_branch, get_tree_sha, and fetch_tree from get_repo_tree module. Filters files by glob pattern using filter_by_pattern from search_repo_files. For each matching file (up to max_files), fetches content and searches with regex using search_lines from grep_file. Includes truncation warning if tree was truncated. Returns formatted text string with per-file match results.
+
+### grep_matching_files()
+Iterates over matching file list, fetches each file via fetch_file_content + decode_content, then runs search_lines with the regex pattern. Skips directories. Returns list of result dicts with path, matches, and total_lines per file.
+
+### format_grep_repo_results()
+Transforms per-file match results into human-readable text output. Shows search parameters, file count, truncation warning if applicable, then per-file match details with line numbers. Lists files without matches at the end.
 
 ## grep_file.py
 

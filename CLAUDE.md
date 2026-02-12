@@ -234,6 +234,7 @@ def fetch_repositories(query: str, sort_by: str) -> dict:
 - Function header comment (one line describing WHAT)
 - NO comments inside function bodies (only header comments + section markers)
 - Type hints: RECOMMENDED but optional
+- When combining functions from multiple modules: verify path conventions are compatible (e.g., Trees API returns paths relative to subtree scope, Contents API requires full repo-relative paths)
 
 ---
 

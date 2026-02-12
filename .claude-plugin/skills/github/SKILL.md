@@ -15,6 +15,7 @@ description: GitHub API search and exploration tools
 | `mcp__github__get_repo_tree` | Browse repository file structure |
 | `mcp__github__get_file_content` | Read file contents from a repo (supports offset/limit for line ranges) |
 | `mcp__github__grep_file` | Search file content by regex pattern |
+| `mcp__github__grep_repo` | Search file content across repo by file pattern |
 | `mcp__github__search_repo_files` | Find files by name pattern (glob) |
 | `mcp__github__search_issues` | Find issues across repositories |
 | `mcp__github__get_issue` | Get single issue details |
@@ -184,6 +185,31 @@ Search file content by regex pattern. Returns matching lines with line numbers.
 ```
 mcp__github__grep_file(owner="user", repo="repo", path="data.csv", pattern="Q13.*?;0;")
 mcp__github__grep_file(owner="user", repo="repo", path="config.py", pattern="API_KEY", context_lines=2)
+```
+
+---
+
+### `mcp__github__grep_repo`
+
+Search file content across a repository by file name pattern. Combines `search_repo_files` (find files by glob) + `grep_file` (search content by regex). Use when `search_code` fails on data files (CSV, TSV, etc.).
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `owner` | string | Yes | Repository owner |
+| `repo` | string | Yes | Repository name |
+| `pattern` | string | Yes | Regex pattern to match against file content |
+| `file_pattern` | string | No | Glob pattern for file names (default: "*.csv") |
+| `path` | string | No | Subdirectory to scope search (default: repo root) |
+| `max_files` | int | No | Max files to search (default: 10, protects API rate) |
+
+**Note:** `max_files` limits how many files are searched (not found). If more files match the glob than `max_files`, the rest are skipped. Use `path` to narrow scope or increase `max_files` for complete results.
+
+**Example:**
+```
+mcp__github__grep_repo(owner="user", repo="repo", pattern="mean_actual_ms", file_pattern="*summary*", path="Evaluation")
+mcp__github__grep_repo(owner="user", repo="repo", pattern="def.*workflow", file_pattern="*.py")
 ```
 
 ---
@@ -410,6 +436,24 @@ When multiple candidates exist (same filename in different paths, multiple subdi
 **3. When no candidate matches — show all to the user.**
 If after checking ALL candidates none matches, present all findings with their full paths and let the user decide. One wrong assumption wastes more time than a few extra tool calls.
 
+**4. Search Mode — targeted vs exploratory.**
+
+Two fundamentally different search modes exist:
+
+- **Targeted search** (user asked for specific data, verification, comparison):
+  The user has context. ALWAYS ask the user for the concrete path/location FIRST.
+  Max 2-3 exploratory tool calls if path is ambiguous, then ask.
+  Use existing context (beads, conversation history) as navigation hints.
+  Example: "Verify Table 5.2 numbers" → Ask "Which directory?" before navigating.
+
+- **Exploratory search** (discover trends, compare repos, survey landscape):
+  The user has no specific target. Navigate freely with tools.
+  Drill down via get_repo_tree, read READMEs, follow interesting leads.
+  Example: "What are hot topics in Claude Code?" → Browse repos, read discussions.
+
+**Detection:** If the user references specific data (table, number, file, claim) → targeted.
+If the user says "look around", "explore", "what's out there" → exploratory.
+
 ### Tool Selection
 
 | Goal | Primary Tool | Secondary |
@@ -441,18 +485,19 @@ If after checking ALL candidates none matches, present all findings with their f
 
 ### Known Limitations
 
-**`search_repo_files` — silent truncation on large repos (Issue #1):**
-- GitHub Git Trees API truncates at ~100k entries without error
-- On large repos (>10k files), `search_repo_files` may silently miss files
-- **Workaround:** Use `path` parameter to narrow search scope (e.g., `search_repo_files(pattern="*.md", path="src/module")`) — smaller subtree avoids truncation
-- **Fallback:** Use `search_code("filename repo:owner/repo")` — uses GitHub Code Search index, no truncation
+**`search_repo_files` — truncation warning on large repos (Issue #1):**
+- GitHub Git Trees API truncates at ~100k entries
+- Tool now warns when `truncated=true` in API response
+- **Workaround:** Use `path` parameter to narrow search scope — smaller subtree avoids truncation
 
 **`search_code` — does not index CSV/data files (Issue #2):**
-- GitHub Code Search skips certain file types (CSVs, data files, possibly generated files)
-- Searching for CSV column headers or values returns 0 results even when content exists
-- **Fallback:** Navigate via `get_repo_tree` → then `grep_file` on specific files
+- GitHub Code Search skips `type: data` files (CSV, TSV, etc. per GitHub Linguist)
+- Tool now shows a NOTE when 0 results, suggesting `grep_file` or `grep_repo`
+- **Fallback:** `grep_repo` searches file content across repo by file pattern
 
-**Combined gap:** For data files in large repos, neither `search_repo_files` nor `search_code` is reliable. Use `get_repo_tree` (with `depth=1`, drilling down step by step) + `grep_file` as the safe path. See Issue #3 for API investigation.
+**Data files in large repos:**
+- Use `grep_repo(pattern="search_term", file_pattern="*.csv", path="subdir")` for content search in data files
+- `grep_repo` combines `search_repo_files` + `grep_file` automatically
 
 ### Searching for Values
 
@@ -460,6 +505,6 @@ When searching for numeric values in CSVs or data files:
 - **Stored format ≠ display format:** 6.74% is stored as `0.06741992...`
 - `search_code("6.74")` → 0 results. `search_code("0.0674")` → may also fail (CSV not indexed)
 - **Strategy:** Search for the column/metric name (e.g., `overall_mre`) instead of the value itself
-- **Best approach for data files:** `get_repo_tree` to find CSVs → `grep_file` to search content
+- **Best approach for data files:** `grep_repo` to search content across matching files
 
 
