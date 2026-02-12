@@ -60,36 +60,90 @@ If the user says "look around", "explore", "what's out there" → exploratory.
 
 | Agent | subagent_type | Model | Output |
 |-------|---------------|-------|--------|
-| github-search | `github-search` | Haiku | Repos with file paths |
+| github-search | `github-search` | Haiku | FILE/VALUE/PATH per finding |
 
 **Usage:** `Task(subagent_type="github-search", prompt="...")`
 
+### Workflow: Overview → Dispatch → Verify
+
+**CRITICAL:** Do NOT manually search through repos with 5+ tool calls. Follow this workflow:
+
+**1. Overview (you, 2-3 tool calls max)**
+- `get_repo_tree(depth=1)` on relevant directories
+- Read README/DOCS if structure is unclear
+- Goal: Understand enough to prompt the sub effectively
+
+**2. Dispatch (subagent)**
+- Provide the overview context in the prompt (directory names, file patterns, what to look for)
+- Sub does the heavy searching: drilling into directories, reading CSVs, counting rows
+- Sub returns: file paths + concrete data (numbers, counts, content extracts)
+
+**3. Verify (you)**
+- Double-check critical findings with `get_file_content` or `grep_file`
+- Never trust sub numbers blindly — spot-check at least the key claims
+- Present verified results to user
+
+**Anti-pattern (what went wrong before):**
+You manually did 8+ sequential tool calls (tree → tree → tree → read → read → tree → tree → read) navigating a repo. After 3 tool calls without a clear answer, you should have dispatched a sub.
+
+**Rule of thumb:** If you've done 3 tool calls on the same search task and still need more → dispatch a sub.
+
 ### When to Use
 
+- **Data verification in known repos** — Sub finds the specific CSV/file, extracts the numbers
+- **Multi-directory search** — Task spans 3+ directories in a repo
+- **API truncation** — Large repo tree gets truncated, sub can narrow scope independently
 - Finding repos by topic/technology
 - Searching code patterns across GitHub
 - Comparing multiple repos for a use case
 - Investigating issues/PRs in unknown repos
-- **API truncation** on large repos — agent can independently narrow scope and drill into subdirectories
 
 ### When NOT to Use
 
-- You know the exact repo (use MCP tools directly)
-- Single file lookup in known repo
+- Single file lookup where you know the exact path
 - Simple targeted search where 1-2 tool calls suffice
+- You already have the file content and just need to read it
 
 ### How to Prompt
 
 **BAD:**
-- "Find semantic search repos" (too vague)
+- "Find the data in this repo" (no context, no structure info)
 - "Search vector databases" (no scope)
 
-**GOOD:**
-- "Find 3-5 Python repos for semantic search, stars >500"
-- "Search for FastMCP + embedding patterns, return implementation paths"
-- "Search for value 48.5 in CSV files under Prediction_Methods/Dynamic/Runtime_Prediction. Drill into subdirectories with depth=1 first, then grep_repo with narrow path."
+**GOOD — include overview context + enforce output format:**
+```
+Repo: brunowinter8192/PostgresRuntimeEval
+Directory structure (from my overview):
+- Prediction_Methods/Hybrid_2/Data_Generation/ has 01_patterns.csv
+- Prediction_Methods/Hybrid_2/Runtime_Prediction/Pattern_Selection/Error/ has Baseline/ and Epsilon/
 
-**Template:**
+Task: Find how many patterns were SELECTED (not total) and their length range.
+Look for selected_patterns.csv or selection_summary.csv in Error/Epsilon/.
+
+Output format (MANDATORY — use EXACTLY this for every finding):
+FILE: <full repo path>
+VALUE: <extracted number or data>
+EVIDENCE: <relevant line from file>
+```
+
+**Template (data verification):**
+```
+Repo: [OWNER]/[REPO]
+Context: [directory structure from your overview]
+
+Verify these claims:
+1. [Claim with specific number]
+2. [Claim with specific range]
+
+For each claim, report in this EXACT format:
+FILE: <full repo path to source file>
+LINES: <total lines in file, noting if line 1 is header>
+VALUE: <actual value found>
+EVIDENCE: <copy the relevant line(s) from the file>
+VERDICT: MATCH / MISMATCH (expected X, found Y)
+```
+
+**Template (exploration):**
 ```
 Research [TOPIC] on GitHub.
 
@@ -115,27 +169,54 @@ Strategy:
 
 ### After Agent Returns
 
-**Agent = Scout with Paths**
+**Agent = Scout, not Authority**
 
-Agent provides:
-- WHERE: Repo + file paths
-- WHAT: Summary of capabilities
+**Expected output format (per finding):**
+```
+FILE: Prediction_Methods/Hybrid_1/Datasets/Baseline_SVM/approach_3/patterns_filtered.csv
+LINES: 74 total (line 1 = header, line 74 = empty trailing newline)
+VALUE: 72 patterns
+EVIDENCE: pattern_hash;pattern_string;pattern_length;operator_count;occurrence_count (header, line 1)
+VERDICT: MATCH (expected 72, found 72)
+```
 
-**You can:**
-1. Present results directly to user
-2. For detail questions: `get_file_content` with provided paths
-3. Paths are verified (from `get_repo_tree` output)
+**If agent returns text summaries without FILE/VALUE/EVIDENCE → output is unusable.**
+Re-prompt with: "Your output lacked file paths. Re-run and use EXACTLY this format for every finding: FILE: / VALUE: / EVIDENCE:"
 
-**Verification:**
-- [ ] Check at least 1 repo exists
-- [ ] Confirm file paths look valid
-- [ ] If agent provided summary: spot-check 1-2 details
+**You MUST:**
+1. Spot-check at least 1 critical FILE path with `get_file_content`
+2. Verify at least 1 VALUE by reading the actual file
+3. Never present agent numbers to user without verification
+4. **Count CSV rows yourself** — agent line counts are unreliable:
+   - Line 1 = header? → subtract 1
+   - Trailing newline? → last "line" is empty → subtract 1
+   - Read the LAST lines of the file (`offset` near end) to check if final line is empty
+   - Example: API says "74 lines" → could be 72 data rows (1 header + 72 data + 1 empty)
+
+**Verification checklist:**
+- [ ] Agent provided concrete file paths (not just summaries)
+- [ ] Key file paths exist (not hallucinated)
+- [ ] Critical numbers match when you spot-check
+- [ ] CSV row count verified: read last lines, check for header + trailing newline
+
+**Verification scope transparency (CRITICAL):**
+When reporting results to user, ALWAYS separate:
+```
+VERIFIED (data matches source file):
+- [list what you actually checked against which file]
+
+NOT VERIFIED (not in this data source):
+- [list claims you could NOT verify from the file you read]
+- [state which file/data would be needed]
+```
+Never say "MATCH" for claims you didn't actually verify. If thesis shows derived data (pattern labels, computed metrics, visualizations) and you only checked raw data — that is a PARTIAL verification. Say so explicitly.
 
 ### Known Pitfalls (Haiku)
 
-1. **Missing Paths** — Agent may forget file paths. Fix: Explicitly ask "Include key implementation file paths"
-2. **Format Drift** — Agent uses own format instead of requested. Fix: Say "Use EXACTLY this format:" with template
-3. **Local Path Leak** — Agent may include local filesystem paths. Fix: Verify output contains only GitHub paths
+1. **Missing Paths** — Agent may forget file paths. Fix: Explicitly ask "Include full file paths for every finding"
+2. **Wrong Counts** — Agent may miscount CSV rows or confuse total vs filtered. Fix: Always spot-check counts yourself
+3. **Format Drift** — Agent uses own format instead of requested. Fix: Say "Use EXACTLY this format:" with template
+4. **Local Path Leak** — Agent may include local filesystem paths. Fix: Verify output contains only GitHub paths
 
 ## Tool Selection
 

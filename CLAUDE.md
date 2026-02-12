@@ -38,6 +38,7 @@ Editable files for Process Improvements in RECAP/IMPROVE phase:
 |--------------------|------------------------|
 | `.claude/agents/github-search.md` | `.claude-plugin/agents/github-search.md` |
 | `.claude/skills/github/*` | `.claude-plugin/skills/github/*` |
+| `.claude/skills/agent-github-search/*` | `.claude-plugin/skills/agent-github-search/*` |
 
 **Rules:**
 - ALWAYS edit `.claude/` files, NEVER `.claude-plugin/` directly
