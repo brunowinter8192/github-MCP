@@ -227,6 +227,11 @@ Never say "MATCH" for claims you didn't actually verify. If thesis shows derived
 2. **Wrong Counts** — Agent may miscount CSV rows or confuse total vs filtered. Fix: Always spot-check counts yourself
 3. **Format Drift** — Agent uses own format instead of requested. Fix: Say "Use EXACTLY this format:" with template
 4. **Local Path Leak** — Agent may include local filesystem paths. Fix: Verify output contains only GitHub paths
+5. **Plan Instead of Data** — Agent returns a "plan" or "strategy" with directory structure but never actually reads files. Fix: When agent output contains NO concrete FILE/VALUE/EVIDENCE entries and instead describes what it WOULD do, immediately dispatch a follow-up sub with:
+   - The directory structure the first sub discovered (reuse its work)
+   - Explicit instruction: "Read the actual files. Do NOT return a plan. Return FILE/VALUE/EVIDENCE for each finding."
+   - Narrower scope targeting the specific files identified by the first sub
+   - This is especially common with Haiku on large repos — it maps structure but runs out of turns before reading data
 
 ## Tool Selection
 
