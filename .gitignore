@@ -22,9 +22,7 @@ bug_fixes/
 CLAUDE.md
 .mcp.json
 
-# Plugin content (symlinked from .claude-plugin/ — root-only to not block .claude-plugin/ subdirs)
-/skills/
-/agents/
+# Plugin hooks (local only)
 /hooks/
 
 # API documentation (local reference)
