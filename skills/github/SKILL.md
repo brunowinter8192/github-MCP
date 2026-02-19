@@ -1,6 +1,23 @@
 ---
 name: gh-search
 description: GitHub API search and exploration tools
+tools:
+  - mcp__plugin_github-research_github__search_repos
+  - mcp__plugin_github-research_github__search_code
+  - mcp__plugin_github-research_github__get_repo
+  - mcp__plugin_github-research_github__get_repo_tree
+  - mcp__plugin_github-research_github__get_file_content
+  - mcp__plugin_github-research_github__grep_file
+  - mcp__plugin_github-research_github__grep_repo
+  - mcp__plugin_github-research_github__search_items
+  - mcp__plugin_github-research_github__get_issue
+  - mcp__plugin_github-research_github__get_issue_comments
+  - mcp__plugin_github-research_github__list_repo_prs
+  - mcp__plugin_github-research_github__get_pr
+  - mcp__plugin_github-research_github__get_pr_files
+  - mcp__plugin_github-research_github__search_discussions
+  - mcp__plugin_github-research_github__list_discussions
+  - mcp__plugin_github-research_github__get_discussion
 ---
 
 # GitHub MCP Tools — Search Strategy
