@@ -3,7 +3,7 @@ name: github-search
 description: GitHub search specialist using MCP tools. Searches repos, code, issues, PRs across GitHub.
 model: haiku
 skills:
-  - github-research:gh-search
+  - github-research:agent-github-search
 tools:
   - mcp__plugin_github-research_github__search_repos
   - mcp__plugin_github-research_github__search_code
