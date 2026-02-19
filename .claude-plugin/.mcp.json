@@ -8,10 +8,7 @@
         "fastmcp",
         "run",
         "${CLAUDE_PLUGIN_ROOT}/server.py"
-      ],
-      "env": {
-        "GITHUB_TOKEN": "${GH_TOKEN}"
-      }
+      ]
     }
   }
 }

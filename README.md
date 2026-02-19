@@ -203,7 +203,8 @@ Read full discussion with comments.
 ### MCP Server
 
 - 17 read-only GitHub API tools
-- **Optional:** `GITHUB_TOKEN` env var for higher rate limits
+- **Required for private repos:** Set `GITHUB_TOKEN` or `GH_TOKEN` as system env var
+- Without token: public repos only, lower rate limits
 
 ### Subagent
 
