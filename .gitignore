@@ -20,7 +20,6 @@ bug_fixes/
 .claude/
 .beads/
 CLAUDE.md
-.mcp.json
 
 # Plugin hooks (local only)
 /hooks/
