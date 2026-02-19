@@ -6,7 +6,5 @@
     "name": "Bruno Winter"
   },
   "repository": "https://github.com/brunowinter8192/github-MCP",
-  "keywords": ["github", "research", "mcp", "search"],
-  "skills": "./skills/github/",
-  "agents": "./agents/github-search.md"
+  "keywords": ["github", "research", "mcp", "search"]
 }

@@ -5,22 +5,22 @@ model: haiku
 skills:
   - github-research:gh-search
 tools:
-  - mcp__plugin_github-research_github__search_repos
-  - mcp__plugin_github-research_github__search_code
-  - mcp__plugin_github-research_github__get_repo
-  - mcp__plugin_github-research_github__get_repo_tree
-  - mcp__plugin_github-research_github__get_file_content
-  - mcp__plugin_github-research_github__grep_file
-  - mcp__plugin_github-research_github__grep_repo
-  - mcp__plugin_github-research_github__search_items
-  - mcp__plugin_github-research_github__get_issue
-  - mcp__plugin_github-research_github__get_issue_comments
-  - mcp__plugin_github-research_github__list_repo_prs
-  - mcp__plugin_github-research_github__get_pr
-  - mcp__plugin_github-research_github__get_pr_files
-  - mcp__plugin_github-research_github__search_discussions
-  - mcp__plugin_github-research_github__list_discussions
-  - mcp__plugin_github-research_github__get_discussion
+  - mcp__github__search_repos
+  - mcp__github__search_code
+  - mcp__github__get_repo
+  - mcp__github__get_repo_tree
+  - mcp__github__get_file_content
+  - mcp__github__grep_file
+  - mcp__github__grep_repo
+  - mcp__github__search_items
+  - mcp__github__get_issue
+  - mcp__github__get_issue_comments
+  - mcp__github__list_repo_prs
+  - mcp__github__get_pr
+  - mcp__github__get_pr_files
+  - mcp__github__search_discussions
+  - mcp__github__list_discussions
+  - mcp__github__get_discussion
 color: green
 ---
 
