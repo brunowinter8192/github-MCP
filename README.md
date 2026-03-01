@@ -24,12 +24,23 @@ Add to your project's `.mcp.json` (all paths must be absolute):
   "mcpServers": {
     "github": {
       "command": "uvx",
-      "args": ["--with", "requests", "--with", "python-dotenv", "fastmcp", "run", "/absolute/path/to/server.py"],
-      "env": { "GITHUB_TOKEN": "${GITHUB_TOKEN}" }
+      "args": ["--with", "requests", "fastmcp", "run", "/absolute/path/to/server.py"],
+      "env": { "GITHUB_TOKEN": "${GH_TOKEN}" }
     }
   }
 }
 ```
+
+### GitHub Token (optional)
+
+Set `GH_TOKEN` in your shell for authenticated access (higher rate limits):
+
+```bash
+# Add to ~/.zshrc or ~/.bashrc
+export GH_TOKEN="ghp_your_token_here"
+```
+
+Without a token, tools work but hit GitHub's unauthenticated rate limit (~60 req/hour).
 
 ## Plugin Components
 

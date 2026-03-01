@@ -4,7 +4,6 @@
       "command": "uvx",
       "args": [
         "--with", "requests",
-        "--with", "python-dotenv",
         "fastmcp",
         "run",
         "${CLAUDE_PLUGIN_ROOT}/server.py"
