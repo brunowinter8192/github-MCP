@@ -130,6 +130,7 @@ If the user says "look around", "explore", "what's out there" → exploratory.
 - Single file lookup where you know the exact path
 - Simple targeted search where 1-2 tool calls suffice
 - You already have the file content and just need to read it
+- **Quick Fact Lookup** (stars, description, open issue count, latest PR): Do it yourself with `get_repo` + `search_items`. Dispatching a sub for 2 direct API calls adds latency with no benefit.
 
 ### How to Prompt
 
