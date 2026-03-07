@@ -92,6 +92,14 @@ If the user says "look around", "explore", "what's out there" → exploratory.
 
 **CRITICAL:** Always dispatch the sub FIRST. Do NOT start searching yourself — once you start, you tend to keep going instead of delegating.
 
+**Exploratory Research = Subagent ALWAYS (NON-NEGOTIABLE):**
+When the task is "find libraries/repos for X" or any broad landscape survey:
+- ALWAYS dispatch github-search subagent — no exceptions
+- The orchestrator NEVER makes own search_repos calls for exploratory searches
+- Subagent does the broad search (multiple short queries), orchestrator verifies top results
+- Doing it yourself leads to: too-specific queries, 0 results, 7+ iterations, wasted context
+- Pattern: dispatch sub → sub returns candidates → you verify top 3-5 with get_repo/get_file_content
+
 **1. Dispatch (subagent)**
 - Dispatch immediately with all available session context (directory structure, file patterns, what to look for)
 - Include known paths from earlier calls (Rule 7) — saves the sub redundant overview work
@@ -250,6 +258,7 @@ Never say "MATCH" for claims you didn't actually verify. If thesis shows derived
    - Explicit instruction: "Read the actual files. Do NOT return a plan. Return FILE/VALUE/EVIDENCE for each finding."
    - Narrower scope targeting the specific files identified by the first sub
    - This is especially common with Haiku on large repos — it maps structure but runs out of turns before reading data
+6. **Parameter Confusion** — Agent puts path value into repo field (e.g., `get_file_content(owner="X", repo="CLAUDE.md")` instead of `path="CLAUDE.md"`). Fix: Verify agent output has all 3 required params: owner, repo, path
 
 ## Tool Selection
 
@@ -295,6 +304,14 @@ Never say "MATCH" for claims you didn't actually verify. If thesis shows derived
 **Data files in large repos:**
 - Use `grep_repo(pattern="search_term", file_pattern="*.csv", path="subdir")` for content search in data files
 - `grep_repo` combines `get_repo_tree(pattern=...)` + `grep_file` automatically
+
+**`search_repos` — query length limit (Issue #3):**
+- GitHub Search API returns 0 results for long queries (5+ words)
+- Queries MUST be short: 2-3 words maximum
+- **Wrong:** `"python browser automation CDP chrome devtools protocol async"` → 0 results
+- **Right:** `"pydoll browser automation"` or `"python CDP chrome"` → results found
+- Use `sort_by` parameter (stars, updated) to filter, not more query words
+- When exploring a broad topic: run MULTIPLE short queries, not ONE long query
 
 ## Searching for Values
 

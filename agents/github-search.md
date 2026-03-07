@@ -21,6 +21,9 @@ tools:
   - mcp__plugin_github-research_github__search_discussions
   - mcp__plugin_github-research_github__list_discussions
   - mcp__plugin_github-research_github__get_discussion
+  - mcp__plugin_github-research_github__list_commits
+  - mcp__plugin_github-research_github__compare_commits
+  - mcp__plugin_github-research_github__list_releases
 color: green
 ---
 
@@ -159,6 +162,14 @@ Query 3: "fastapi oauth2 jwt language:python stars:>50" -> 12 results, focused
 3. get_discussion owner, repo, number, comment_sort="upvotes" -> Read top answers
 ```
 
+### Commit History & Version Analysis
+```
+1. list_commits owner, repo -> Browse recent commits
+2. list_commits owner, repo, path="src/main.py" -> Find when file was changed
+3. compare_commits owner, repo, base="v1.0", head="v2.0" -> See what changed between versions
+4. list_releases owner, repo -> Find versions and changelogs
+```
+
 ## Path Integrity (CRITICAL)
 
 **NEVER construct paths from memory or assumptions.**
@@ -166,6 +177,7 @@ Query 3: "fastapi oauth2 jwt language:python stars:>50" -> 12 results, focused
 - If `get_repo_tree` shows `Baseline_SVM/approach_3/` → use that EXACT path
 - If a file read fails with 404 → the path is WRONG. Re-run `get_repo_tree` to find the correct path
 - Do NOT skip intermediate directories (e.g., `Datasets/approach_3/` when actual path is `Datasets/Baseline_SVM/approach_3/`)
+- After `get_repo_tree`, note which entries are directories (trailing `/`) vs files. NEVER pass a directory path to `get_file_content` — use `get_repo_tree` to explore directories instead
 
 ## Output Requirements for Main Agent
 
