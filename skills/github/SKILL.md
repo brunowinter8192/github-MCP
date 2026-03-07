@@ -235,6 +235,12 @@ Re-prompt with: "Your output lacked file paths. Re-run and use EXACTLY this form
 - [ ] Critical numbers match when you spot-check
 - [ ] CSV row count verified: read last lines, check for header + trailing newline
 
+**Verification tool selection (CRITICAL):**
+When verifying whether a parameter/function/class exists:
+- Agent cited a specific FILE → use `grep_file` on THAT file. Direct hit, no false negatives.
+- Agent cited no specific file → use `grep_repo` with `max_files=50+` and `file_pattern="*.py"`. Default max_files (10) causes false negatives on repos with 50+ files.
+- NEVER conclude "doesn't exist" from a `grep_repo` with low max_files — that's a sampling error, not a verification.
+
 **Verification scope transparency (CRITICAL):**
 When reporting results to user, ALWAYS separate:
 ```
