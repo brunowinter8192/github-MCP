@@ -209,6 +209,51 @@ Performs HTTP GET request to GitHub Pulls Files API. Returns array of file objec
 ### format_pr_files()
 Transforms raw API response into human-readable text output. Calculates total additions and deletions. Lists each file with status icon, filename, change counts, and truncated patch preview. Shows renamed files with previous filename.
 
+## list_commits.py
+
+**Purpose:** List commits in a repository with optional filters for branch, path, and author.
+**Input:** owner, repo name, optional sha (branch/SHA to start from), path (file filter), author, per_page
+**Output:** Human-readable formatted text listing commits with SHA, message, author, date, and URL
+
+### list_commits_workflow()
+Main orchestrator that coordinates commit listing. Calls fetch_commits to get raw API data, then format_commits to structure the output. Returns formatted text string with commit listings.
+
+### fetch_commits()
+Performs HTTP GET request to GitHub Commits API for repository. Constructs URL with optional query parameters: sha (starting point), path (file filter), author (username/email filter), per_page (pagination). Skips empty string parameters. Returns array of commit objects.
+
+### format_commits()
+Transforms raw API response into human-readable text output. Extracts short SHA (7 chars), first line of commit message (max 80 chars), author name, date, and URL for each commit. Returns formatted text string listing commits.
+
+## compare_commits.py
+
+**Purpose:** Compare two branches, tags, or SHAs showing commits and file changes between them.
+**Input:** owner, repo name, base ref, head ref
+**Output:** Human-readable formatted text with comparison summary, commit list, and files changed with diff stats
+
+### compare_commits_workflow()
+Main orchestrator that coordinates commit comparison. Calls fetch_comparison to get raw API data, then format_comparison to structure the output. Returns formatted text string with comparison details.
+
+### fetch_comparison()
+Performs HTTP GET request to GitHub Compare API using {base}...{head} path format. Accepts branch names, tag names, or commit SHAs. Returns comparison object with status, ahead_by, behind_by, commits array, and files array.
+
+### format_comparison()
+Transforms raw API response into human-readable text output. Shows comparison summary (status, ahead/behind counts, total commits, files changed). Lists commits with short SHA and first message line (max 20 displayed). Lists files with status icon ([A]dded, [D]eleted, [M]odified, [R]enamed), filename, and addition/deletion counts (max 30 displayed). Shows renamed files with previous filename.
+
+## list_releases.py
+
+**Purpose:** List releases in a repository with version tags and changelogs.
+**Input:** owner, repo name, per_page
+**Output:** Human-readable formatted text listing releases with tag, name, date, changelog preview, and URL
+
+### list_releases_workflow()
+Main orchestrator that coordinates release listing. Calls fetch_releases to get raw API data, then format_releases to structure the output. Returns formatted text string with release listings.
+
+### fetch_releases()
+Performs HTTP GET request to GitHub Releases API for repository. Applies per_page pagination parameter. Returns array of release objects.
+
+### format_releases()
+Transforms raw API response into human-readable text output. Extracts tag_name, name, published date, prerelease flag, draft flag, assets count, and URL for each release. Includes changelog body preview truncated to 300 characters, collapsed to single line. Skips changelog line when body is empty.
+
 ## graphql_client.py
 
 **Purpose:** Shared GraphQL client infrastructure for GitHub GraphQL API.

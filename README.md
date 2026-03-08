@@ -47,7 +47,7 @@ Without a token, tools work but hit GitHub's unauthenticated rate limit (~60 req
 | Component | Name | Description |
 |-----------|------|-------------|
 | **Skill** | `/github-research:gh-search` | Tool usage context and workflows |
-| **MCP Server** | `github` | 17 GitHub API tools |
+| **MCP Server** | `github` | 20 GitHub API tools |
 | **Subagent** | `github-search` | Deep research specialist |
 
 ## MCP Tools
@@ -170,6 +170,40 @@ Get PR details or list changed files.
 | `repo` | string | required | Repository name |
 | `pull_number` | int | required | PR number |
 
+### list_commits
+
+Browse commit history with optional filters.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `owner` | string | required | Repository owner |
+| `repo` | string | required | Repository name |
+| `sha` | string | `""` | Branch or SHA to start from |
+| `path` | string | `""` | Only commits touching this file |
+| `author` | string | `""` | Filter by author (username or email) |
+| `per_page` | int | `20` | Number of results |
+
+### compare_commits
+
+Compare two branches, tags, or SHAs.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `owner` | string | required | Repository owner |
+| `repo` | string | required | Repository name |
+| `base` | string | required | Base branch, tag, or SHA |
+| `head` | string | required | Head branch, tag, or SHA |
+
+### list_releases
+
+List releases with version tags and changelogs.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `owner` | string | required | Repository owner |
+| `repo` | string | required | Repository name |
+| `per_page` | int | `10` | Number of results |
+
 ### search_discussions
 
 Find discussions across GitHub.
@@ -213,7 +247,7 @@ Read full discussion with comments.
 
 ### MCP Server
 
-- 17 read-only GitHub API tools
+- 20 read-only GitHub API tools
 - **Required for private repos:** Set `GITHUB_TOKEN` or `GH_TOKEN` as system env var
 - Without token: public repos only, lower rate limits
 

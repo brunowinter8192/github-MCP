@@ -27,3 +27,7 @@ CLAUDE.md
 # API documentation (local reference)
 APIEndpoints/
 endpoints.md
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db

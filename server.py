@@ -19,6 +19,9 @@ from src.github.get_repo import get_repo_workflow
 from src.github.search_discussions import search_discussions_workflow
 from src.github.list_discussions import list_discussions_workflow
 from src.github.get_discussion import get_discussion_workflow
+from src.github.list_commits import list_commits_workflow
+from src.github.compare_commits import compare_commits_workflow
+from src.github.list_releases import list_releases_workflow
 
 mcp = FastMCP("GitHub")
 
@@ -143,6 +146,40 @@ def get_discussion(
 ) -> list[TextContent]:
     """Get discussion. Use to read full discussion with comments sorted by upvotes."""
     return get_discussion_workflow(owner, repo, number, comment_limit, comment_sort)
+
+
+@mcp.tool
+def list_commits(
+    owner: str,
+    repo: str,
+    sha: str = "",
+    path: str = "",
+    author: str = "",
+    per_page: int = 20
+) -> list[TextContent]:
+    """List commits. Use to browse commit history or find when changes were introduced."""
+    return list_commits_workflow(owner, repo, sha, path, author, per_page)
+
+
+@mcp.tool
+def compare_commits(
+    owner: str,
+    repo: str,
+    base: str,
+    head: str
+) -> list[TextContent]:
+    """Compare two branches, tags, or SHAs. Use to see changes between versions."""
+    return compare_commits_workflow(owner, repo, base, head)
+
+
+@mcp.tool
+def list_releases(
+    owner: str,
+    repo: str,
+    per_page: int = 10
+) -> list[TextContent]:
+    """List releases. Use to find versions, changelogs, or breaking changes."""
+    return list_releases_workflow(owner, repo, per_page)
 
 
 if __name__ == "__main__":
