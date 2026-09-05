@@ -1,9 +1,8 @@
 # Tracker-Migration Header Strip (Class F) + Corpus Re-Clean Dry-Run (2026-09-05)
 
-Process record for wiring junk class F (TRACKER_MIGRATION, from
-`junk_class_inventory_2026-08-28.md`) into the `index_issues` pipeline for future fetches, plus a
-dry-run re-clean check against the live `github_issues` corpus. No `--apply` was run and the RAG
-index was not touched.
+Process record for wiring junk class F (TRACKER_MIGRATION, from the junk-class inventory in this
+area) into the `index_issues` pipeline for future fetches, plus a dry-run re-clean check against
+the live `github_issues` corpus. No `--apply` was run and the RAG index was not touched.
 
 ## What class F looks like, read from the real files
 
@@ -60,7 +59,7 @@ bot block fully dropped, quoted line dropped, `Author:`/`Date:` stripped, plain 
 ## CLEANING_VERSION
 
 Bumped in `src/github/raw_logging.py`: `"2026-08-28-no-prose-guard"` →
-`"2026-08-29-strip-migration-header"`, per the convention that any change to
+`"2026-09-05-strip-migration-header"`, per the convention that any change to
 `strip_noise`/`strip_comments_noise` gets a new version string so a raw/cleaned diff found later
 can be attributed to the filter version that produced it.
 
@@ -91,7 +90,7 @@ Corpus: 963 files (grown from 873 during ongoing use since the 2026-08-28 sessio
 - Lines removed: **108** (36 spans × 3 lines each — header, blank, rule).
 - Chars removed: **7,628**.
 
-These are the current, live-corpus figures — they differ from the `junk_class_inventory_2026-08-28`
+These are the current, live-corpus figures — they differ from the junk-class inventory's earlier
 row for class F (8 files, 38 lines, 6,425 chars) because that earlier ad-hoc scan predates this
 session's corpus growth (844→963 files via ongoing `index_issues` use) and used a narrower,
 manually-eyeballed count rather than the anchor built and run here. The corpus, not the earlier
