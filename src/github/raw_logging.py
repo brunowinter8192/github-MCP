@@ -19,7 +19,7 @@ MANIFEST_PATH = RAW_LOG_DIR / "_manifest.jsonl"
 # per fetch in the manifest so a raw/cleaned diff found months from now can be attributed to the
 # filter version that actually produced the cleaned counterpart — without it the delta is
 # uninterpretable, since the filter keeps changing underneath the corpus.
-CLEANING_VERSION = "2026-09-05-protect-warning"
+CLEANING_VERSION = "2026-09-05-keep-attribution"
 
 
 # FUNCTIONS

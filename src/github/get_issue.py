@@ -33,7 +33,7 @@ def format_issue(issue: dict, owner: str, repo: str) -> str:
 
     lines.append(f"# {issue['title']}")
     lines.append(f"State: {issue['state'].upper()} | #{issue['number']}")
-    lines.append(f"Author: {issue['user']['login']}")
+    lines.append(f"Author: {issue['user']['login']} ({issue['author_association']})")
     lines.append(f"Created: {issue['created_at']} | Updated: {issue['updated_at']}")
 
     labels = ", ".join(l["name"] for l in issue.get("labels", []))
