@@ -41,8 +41,13 @@ SENSITIVITY_THRESHOLDS = [5, 8, 10, 15, 20, 30]
 # stdlib-only (re). No dev-specific logic.
 
 # Hard safety exclusion — a line matching any of these is NEVER classified as removable and
-# NEVER bridged over. These are the retrieval target of the document (the actual failure).
-ERROR_RE = re.compile(r'error|fatal|traceback|exception|failed', re.IGNORECASE)
+# NEVER bridged over. These are the retrieval target of the document (the actual failure) — or,
+# for "warning", genuine content the reporter/maintainer wrote. Project premise: content and
+# context have absolute priority, we only ever remove pure noise, and a warning is content, never
+# noise, even sitting inside an otherwise-disposable pip/build run. Added 2026-09-05 after
+# MinerU__1418.md's "WARNING: magic-pdf 0.6.1 does not provide the extra 'full'" was found bridged
+# over between Downloading/Requirement-already-satisfied lines — see process-docs/content_cleaning/.
+ERROR_RE = re.compile(r'error|fatal|traceback|exception|failed|warning', re.IGNORECASE)
 # Python traceback frame ("File "...", line N, in func") and native/gdb backtrace frame
 # ("path:line:col: 0xADDR in func") — protected even though they don't literally contain an
 # error-indicator word. Without this, caret/underline diagnostic markers (below) can bridge
@@ -58,7 +63,6 @@ SIGNAL_PATTERNS = [
     # distutils/setuptools verb lines (running install, creating build/, copying X -> Y, ...)
     re.compile(r'^\s*(running|creating|copying|writing|reading|installing|removing|deleting|'
                r'generating|skipping|cleaning|overriding|byte-compiling|moving)\s+\S'),
-    re.compile(r"^\s*warning: no (directories|files|previously-included files) found matching"),
     re.compile(r"^Use '.*' instead of '.*' as the compiler$"),
     re.compile(r"^\s*building '.*' extension$"),
     # pip / conda package-manager output
@@ -83,11 +87,14 @@ SIGNAL_PATTERNS = [
                r'updating to branch)\b'),
     re.compile(r'^\d+ files updated, \d+ files (merged|removed)'),
     re.compile(r'^added \d+ changesets with \d+ changes to \d+ files'),
-    # compiler invocation + diagnostics
+    # compiler invocation + diagnostics — the "warning" branch of the diagnostic-header pattern
+    # and the two warning-only entries below (warning: no ... found matching / clang: warning: /
+    # N warnings generated) are removed: any such line already contains "warning" and is now
+    # protected by ERROR_RE before SIGNAL_PATTERNS is even checked, so they were dead weight that
+    # would have contradicted the protection. "note:" is unaffected (a compiler note is not a
+    # warning) and stays live.
     re.compile(r"^\s*(/\S+/)?([a-zA-Z0-9_.-]*-)?(clang|gcc|g\+\+|cc1|cc)\s+-\S"),
-    re.compile(r'^\s*\S+\.(c|cc|cpp|cxx|m|mm|h|hpp|hh):\d+:\d+:\s*(warning|note):'),
-    re.compile(r'^\d+ warnings? generated\.$'),
-    re.compile(r'^\s*clang: warning:'),
+    re.compile(r'^\s*\S+\.(c|cc|cpp|cxx|m|mm|h|hpp|hh):\d+:\d+:\s*note:'),
 ]
 
 
