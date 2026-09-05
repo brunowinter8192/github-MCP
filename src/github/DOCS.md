@@ -100,8 +100,8 @@
 ### get_issue.py (51 LOC)
 
 **Purpose:** Retrieve full issue details including body.
-**Reads:** GitHub Issues API (`/issues/{number}`).
-**Writes:** returns `list[TextContent]` — title, state, author, dates, labels, comment count, body.
+**Reads:** GitHub Issues API (`/issues/{number}`) — including `author_association` (top-level field alongside `user`; values observed: `OWNER`/`MEMBER`/`COLLABORATOR`/`CONTRIBUTOR`/`NONE`), confirmed present via a live call, not assumed.
+**Writes:** returns `list[TextContent]` — title, state, `Author: {login} ({author_association})`, dates, labels, comment count, body.
 **Called by:** `cli.py` (direct CLI subcommand: `gh-cli get_issue owner repo number`); `index_issues.py` (imports `get_issue_workflow` for RAG fetch).
 **Calls out:** `requests`, `mcp.types`.
 
@@ -130,20 +130,22 @@
 ### get_issue_comments.py (52 LOC)
 
 **Purpose:** Retrieve all comments on a GitHub issue.
-**Reads:** GitHub Issue Comments API (`/issues/{number}/comments`).
-**Writes:** returns `list[TextContent]` — comment count, each comment with author, date, body.
+**Reads:** GitHub Issue Comments API (`/issues/{number}/comments`) — including `author_association` per comment (same field, same values as `get_issue.py`; confirmed present via a live call, not assumed).
+**Writes:** returns `list[TextContent]` — comment count, each comment with `Author: {login} ({author_association})`, date, body.
 **Called by:** `index_issues.py` (imports `get_issue_comments_workflow`). Internal-only helper — no CLI subcommand.
 **Calls out:** `requests`, `mcp.types`.
 
 ---
 
-### index_issues.py (277 LOC)
+### index_issues.py (282 LOC)
 
 **Purpose:** Fetch GitHub issues matching a query, strip noise, write per-issue MDs, and index into the `github_issues` RAG collection. Keyword-fallback loop (3→2→1) ensures a non-empty result set.
 **Reads:** GitHub Search Issues API + `get_issue_workflow` + `get_issue_comments_workflow` in-process; globs `RAG_DOC_DIR/*.md` for MD count; `rag-cli list_collections` for chunk total.
 **Writes:** per-issue MDs to `RAG_DOC_DIR` as `<repo_basename>__<num>.md` (overwrite); the raw fetch (via `log_raw_issue`) before any strip touches it; invokes `rag-cli index` via subprocess; raises `RuntimeError` on non-zero exit (busy/locked detected via stderr, message includes recovery command); returns `list[TextContent]` summary.
 **Called by:** `cli.py`.
 **Calls out:** `requests`, `mcp.types`; imports from `get_issue.py`, `get_issue_comments.py`, `text_cleaning.py` (`strip_generic_noise` then `strip_build_logs`, both applied additively after `strip_noise`/`strip_comments_noise`, to body and comments separately — see `text_cleaning.py` entry for why separately is safe against a build log spanning the body/comments boundary), `raw_logging.py` (`log_raw_issue`, called on the two raw fetch strings before either is cleaned), `config.py` (`RAG_ROOT`, `DEFAULT_LIMIT`).
+
+`strip_noise` keeps the body's `Author:`/`Created:` lines and `strip_comments_noise` keeps each comment's `Author:`/`Date:` lines (2026-09-05 — context has priority, attribution and date are content, not noise; `Updated:`/`Branch:`/`Commits:`/`Changed Files:`/`Mergeable:`/`URL:`/`Comments:` still stripped, unchanged). `Author:` now carries the commenter's GitHub role next to the login (`Author: login (ROLE)`, e.g. `Author: octocat (OWNER)`), sourced from `author_association` in `get_issue.py`/`get_issue_comments.py`'s payloads. This broke the `[bot]`-comment check's `str.endswith('[bot]')` test (a bot login's line no longer *ends* with `[bot]`, it ends with the new `(ROLE)` suffix) — fixed to check for the substring `'[bot] ('` instead, verified against a real bot comment (`github-actions[bot]`, `anthropics/claude-code#30677`).
 
 `strip_noise` (body) and `strip_comments_noise` (comments) also strip junk class F — a tracker-migration attribution header: `**[Original report](bitbucket_url) by NAME (...).**` (issue body, first content) or `**Original comment by NAME (...).**` (each migrated comment), always followed by a blank line then exactly 40 dashes. Module-level `MIGRATION_REPORT_RE`, `MIGRATION_COMMENT_RE`, `MIGRATION_RULE_RE` anchor the three-line span (header + blank + rule), dropped together; both functions use an `enumerate` + `skip_until` index sentinel to consume the lookahead without disturbing the existing per-line checks. Observed only in the pyobjc repo (7 issues) as of 2026-08-28 — see `process-docs/content_cleaning/`.
 

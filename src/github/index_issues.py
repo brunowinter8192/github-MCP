@@ -123,8 +123,11 @@ def search_raw(query: str, repo: str, limit: int) -> tuple[int, list[int]]:
 
 # Strip indexing noise from a formatted issue text; return (filtered_text, extracted_title)
 def strip_noise(text: str) -> tuple[str, str]:
+    # Author and Created carry attribution/date context and are kept — content and context have
+    # priority, only pure noise is stripped. Author now also carries the GitHub role
+    # (author_association) next to the login, e.g. "Author: octocat (OWNER)" — see get_issue.py.
     METADATA_PREFIXES = (
-        "Author:", "Created:", "Updated:", "Branch:",
+        "Updated:", "Branch:",
         "Commits:", "Changed Files:", "Mergeable:", "URL:", "Comments:",
     )
     CHECKBOX_RE = re.compile(r'^\s*-\s*\[[ xX]\]')
@@ -179,7 +182,8 @@ def _is_automated_only_comment(block: list) -> bool:
     return len(content) == 1 and bool(AUTOMATED_COMMENT_RE.match(content[0]))
 
 
-# Clean comments text: drop bot comments, strip Author/Date metadata, strip quoted-reply lines,
+# Clean comments text: drop bot comments, keep Author/Date metadata (context has priority — see
+# get_issue_comments.py for the Author line's "login (ROLE)" format), strip quoted-reply lines,
 # strip tracker-migration attribution header + rule (class F), drop whole automated
 # version-removal comments (class G)
 def strip_comments_noise(comments_text: str) -> str:
@@ -199,7 +203,10 @@ def strip_comments_noise(comments_text: str) -> str:
                 if lines[j].startswith('Author:'):
                     author_line = lines[j]
                     break
-            if author_line.rstrip().endswith('[bot]'):
+            # login ends with "[bot]" — checked as "[bot] (" since Author now carries the role
+            # in a trailing "(ROLE)" parenthetical (see get_issue_comments.py), so the line no
+            # longer ends with "[bot]" itself
+            if '[bot] (' in author_line:
                 in_bot_block = True
                 in_automated_block = False
             else:
@@ -219,8 +226,6 @@ def strip_comments_noise(comments_text: str) -> str:
         elif (MIGRATION_COMMENT_RE.match(line) and i + 2 < len(lines)
                 and lines[i + 1].strip() == '' and MIGRATION_RULE_RE.match(lines[i + 2])):
             skip_until = i + 2
-            continue
-        elif line.startswith('Author:') or line.startswith('Date:'):
             continue
         elif line.startswith('> '):
             continue
