@@ -73,6 +73,16 @@ Audit, validate, and re-clean the noise strip for `index_discussions` and `index
 **Called by:** run manually (dev entry point).
 **Calls out:** stdlib only.
 
+---
+
+### 08_audit_debug_stream.py (327 LOC)
+
+**Purpose:** Measure junk class B (DEBUG_STREAM — app debug/log lines pasted from a terminal, distinct from class A build/install output) on the issue MD corpus. Read-only — never modifies the corpus; no detector or strip, measurement + a written proposal only. Vocabulary (derived by reading real files, not the junk-class inventory's 3 examples alone): `ghostty_debug` (`^(debug|info|warning)\([a-zA-Z_]+\):`), `playwright_pw` (`^\s*pw:[a-z:]+`, also covers the `pw:browser` sub-shape), `loguru_narration` (loguru's `TIMESTAMP | LEVEL | module:func:line - msg` with LEVEL restricted to `TRACE/DEBUG/INFO/SUCCESS/WARNING` — ERROR/CRITICAL deliberately excluded, those are the retrieval target). Measures, per shape: files/lines/chars, repo clustering, run-length histogram (`_find_shape_runs`, a single-vocabulary simplification of `_find_build_log_blocks`'s bridging discipline). Also measures literal-repeat vs. normalized-fingerprint (`_normalize_fingerprint`: digits/hex/UUID/timestamp collapsed) repeats corpus-wide, and adjacency (windows 0/3/10 lines) between each vocabulary-matched line and a currently-protected line (`ERROR_RE`/`TRACE_RE`/`BACKTRACE_RE`, verbatim copy) vs. a proposed, measurement-only extension (`PROPOSED_CRASH_RE`: `panic:`/`Segmentation fault`/`SIG(ABRT|SEGV|ILL|BUS|FPE)`/`Aborted (core dumped)`; `PROPOSED_UNRESOLVED_FRAME_RE`: unresolved `???:?:?: 0x... in ???` backtrace frames) — found reading `ghostty__10406.md`/`ghostty__10379.md`, where real crash content matches none of the existing protected regexes. Measured on the 963-file corpus (2026-09-05): 55 files, 2,957 lines, 485,182 chars (6.64% of corpus) candidate across the 3 shapes; see `process-docs/content_cleaning/` for the full proposal, the non-B evidence, and the gate recommendation.
+**Reads:** issue MD corpus (`--source-dir PATH` override).
+**Writes:** report MD to `md/08_audit_<timestamp>.md` — per-shape file/line/chars/repo/run-length breakdown with per-file evidence lines, plus the literal-vs-fingerprint repeat comparison with top-delta files and their normalized examples; corpus-wide numbers (per-shape totals, repeat comparison, adjacency counts) go to stdout; prints the report path.
+**Called by:** run manually (dev entry point).
+**Calls out:** stdlib only.
+
 ## Gotchas
 - `03_reclean_discussions.py` and `02_strip_validation.py` contain intentional verbatim copies of `src/github/discussion_cleaning.py` (`strip_noise` + `_bare`, `_is_badge_line`, constants): the `block_dev_imports_src` hook forbids `from src.` in dev/. Duplication, not drift — update the copy when the source changes.
 - `04_reclean_issues.py` contains an intentional verbatim copy of `src/github/text_cleaning.py` (`strip_generic_noise` + regexes). Source of truth: `src/github/text_cleaning.py`.
