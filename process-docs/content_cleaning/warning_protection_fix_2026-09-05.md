@@ -1,9 +1,9 @@
-# Fix: strip_build_logs Swallowed a Warning Line — Protection + Cost + Restore Dry-Run (2026-09-05)
+# Fix: strip_build_logs Swallowed a Warning Line — Protection + Cost + Restore (2026-09-05)
 
 Process record for a real content-loss finding in the already-applied build-log strip, the
-protection fix, its measured cost against the pre-strip backup, and the dry-run that reconstructs
-the 8 affected files under the fix. No file in the live corpus was modified — the restore is a
-dry-run only, awaiting separate approval to `--apply`.
+protection fix, its measured cost against the pre-strip backup, the restore dry-run that
+reconstructs the 8 affected files under the fix, and the approved apply that followed the same
+day. No reindex was run as part of this work — that is being done and recorded separately.
 
 ## The finding
 
@@ -93,9 +93,42 @@ live counterparts, confirming the class-F/G verbatim copy correctly reproduces t
 state on top of the fixed build-log strip. Report:
 `dev/content_cleaning/md/10_restore_dryrun_20260905_204243.md`.
 
-**`--apply` was not run.** It is implemented (backs up the live corpus dir to
-`<corpus>_PRE_WARNING_RESTORE_BACKUP_<timestamp>` then overwrites only the 8 files, refusing if
-any file shows an unexpected diff) but awaits separate approval on this dry-run before executing.
+The dry-run was approved on this evidence, and `--apply` was run the same day (below).
+
+## Apply
+
+Recorded immediately before: **963 files**, newest mtime `2026-09-05T19:09:58.230296`
+(`pyobjc__77.md`).
+
+`10_restore_build_log_files.py --apply` ran. Backup created at
+`data/documents/github_issues_PRE_WARNING_RESTORE_BACKUP_20260905_204624` — confirmed to hold the
+full corpus (963 files) in its pre-restore (still-stripped) state: `MinerU__1418.md` in the backup
+contains zero occurrences of the warning line, matching the live file's state immediately before
+this apply.
+
+Recorded immediately after: **963 files** (unchanged — the restore only overwrites, never
+adds/removes), newest mtime `2026-09-05T20:46:24.865206` (`pyobjc__34.md`). Every file with an
+mtime at or after the apply's write-window start (`>= 2026-09-05T20:46:24`) was enumerated: exactly
+5 — `MinerU__1418.md`, `MinerU__2262.md`, `MinerU__826.md`, `curl_cffi__74.md`, `pyobjc__34.md` —
+a direct set comparison against the expected 5 filenames (the ones the dry-run reported as
+`changed`) showed an exact match, no extra file, no missing file. `ghostty__2210.md`,
+`pyobjc__175.md`, `pyobjc__176.md` (the 3 files the dry-run found zero lines to add back for)
+confirmed absent from the rewritten set, as expected.
+
+The apply run's own report was diffed line-for-line against the approved dry-run report
+(`10_restore_dryrun_20260905_204243.md`): identical apart from the header timestamp line. Both
+report 5/8 files changed, 352 lines added back, 0 unexpected differences.
+
+Content verified directly in the live corpus after the apply: `MinerU__1418.md`,
+`MinerU__2262.md`, and `MinerU__826.md` each contain
+`"WARNING: magic-pdf 0.6.1 does not provide the extra 'full'"` again; `curl_cffi__74.md` contains
+`"warning: no files found matching 'include/curl/*'"` again; `pyobjc__34.md`'s `clang: warning`
+count is back to 97 occurrences.
+
+Result: the corpus's warning-protection fix is live for the 5 files it actually changes. Backup
+preserved at `github_issues_PRE_WARNING_RESTORE_BACKUP_20260905_204624` as the record of the
+pre-restore (still-stripped) state of all 8 candidate files. The RAG index has not been touched by
+this work; the reindex and its resulting chunk-count delta are recorded separately.
 
 ## Artifacts
 
@@ -104,9 +137,12 @@ any file shows an unexpected diff) but awaits separate approval on this dry-run 
 - `src/github/raw_logging.py` — `CLEANING_VERSION` bumped.
 - `dev/content_cleaning/05_strip_build_logs.py`, `dev/content_cleaning/06_reclean_build_logs.py` —
   same change applied verbatim; `06`'s safety-assertion report text updated to mention `warning`.
-- `dev/content_cleaning/10_restore_build_log_files.py` — new restore script (dry-run only, not
-  applied).
+- `dev/content_cleaning/10_restore_build_log_files.py` — new restore script, dry-run and apply both
+  exercised.
 - `dev/content_cleaning/md/06_reclean_dryrun_20260905_204023.md`,
   `dev/content_cleaning/md/warning_protection_cost_20260905_204054.md`,
-  `dev/content_cleaning/md/10_restore_dryrun_20260905_204243.md` — the reports behind the numbers
-  above.
+  `dev/content_cleaning/md/10_restore_dryrun_20260905_204243.md` (approved dry-run),
+  `dev/content_cleaning/md/10_restore_dryrun_20260905_204624.md` (apply run, identical apart from
+  timestamp) — the reports behind the numbers above.
+- `github_issues_PRE_WARNING_RESTORE_BACKUP_20260905_204624` — the full-corpus backup taken
+  immediately before the apply; not disposable, do not delete.
