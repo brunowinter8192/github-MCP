@@ -38,6 +38,14 @@ MIGRATION_REPORT_RE = re.compile(r'^\*\*\[Original report\]\([^)]*\) by .+\.\*\*
 MIGRATION_COMMENT_RE = re.compile(r'^\*\*Original comment by .+\.\*\*$')
 MIGRATION_RULE_RE = re.compile(r'^-{40}$')
 
+# Automated version-removal comment (junk class G): a comment whose entire body is one line,
+# "Removing version: X (automated comment)" (X = 2.4, 2.5, 3.0, 3.1 observed) — Bitbucket
+# generated these when a version field was removed, and the migration copied them under the
+# maintainer's human account, so the existing '[bot]' author check cannot see them. Anchored on
+# the literal "(automated comment)" marker as the corpus shows it. Observed in 5 of the 7 migrated
+# pyobjc issues (one occurrence each) as of 2026-09-05, see process-docs/content_cleaning/.
+AUTOMATED_COMMENT_RE = re.compile(r'^Removing version: .+ \(automated comment\)$')
+
 
 # ORCHESTRATOR
 
@@ -150,13 +158,36 @@ def strip_noise(text: str) -> tuple[str, str]:
     return "\n".join(out), title
 
 
+# True if a comment's body (the lines between its separator and the next one, or end of text)
+# reduces to solely the automated version-removal marker once Author/Date metadata and a nested
+# class-F migration header (if present) are excluded
+def _is_automated_only_comment(block: list) -> bool:
+    content = []
+    i = 0
+    n = len(block)
+    while i < n:
+        line = block[i]
+        if line.strip() == '' or line.startswith('Author:') or line.startswith('Date:'):
+            i += 1
+            continue
+        if (MIGRATION_COMMENT_RE.match(line) and i + 2 < n
+                and block[i + 1].strip() == '' and MIGRATION_RULE_RE.match(block[i + 2])):
+            i += 3
+            continue
+        content.append(line)
+        i += 1
+    return len(content) == 1 and bool(AUTOMATED_COMMENT_RE.match(content[0]))
+
+
 # Clean comments text: drop bot comments, strip Author/Date metadata, strip quoted-reply lines,
-# strip tracker-migration attribution header + rule (class F)
+# strip tracker-migration attribution header + rule (class F), drop whole automated
+# version-removal comments (class G)
 def strip_comments_noise(comments_text: str) -> str:
     SEP_RE = re.compile(r'^--- Comment \d+ ---$')
     lines = comments_text.split('\n')
     out = []
     in_bot_block = False
+    in_automated_block = False
     skip_until = -1
 
     for i, line in enumerate(lines):
@@ -170,10 +201,19 @@ def strip_comments_noise(comments_text: str) -> str:
                     break
             if author_line.rstrip().endswith('[bot]'):
                 in_bot_block = True
+                in_automated_block = False
             else:
                 in_bot_block = False
-                out.append(line)
+                end_idx = next(
+                    (j for j in range(i + 1, len(lines)) if SEP_RE.match(lines[j])), len(lines)
+                )
+                in_automated_block = _is_automated_only_comment(lines[i + 1:end_idx])
+                if not in_automated_block:
+                    out.append(line)
         elif in_bot_block:
+            continue
+        # AUTOMATED_COMMENT (class G): whole comment (separator through body) dropped together
+        elif in_automated_block:
             continue
         # TRACKER_MIGRATION (class F): header line + blank + 40-dash rule, all dropped together
         elif (MIGRATION_COMMENT_RE.match(line) and i + 2 < len(lines)
