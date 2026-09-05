@@ -137,13 +137,15 @@
 
 ---
 
-### index_issues.py (207 LOC)
+### index_issues.py (237 LOC)
 
 **Purpose:** Fetch GitHub issues matching a query, strip noise, write per-issue MDs, and index into the `github_issues` RAG collection. Keyword-fallback loop (3→2→1) ensures a non-empty result set.
 **Reads:** GitHub Search Issues API + `get_issue_workflow` + `get_issue_comments_workflow` in-process; globs `RAG_DOC_DIR/*.md` for MD count; `rag-cli list_collections` for chunk total.
 **Writes:** per-issue MDs to `RAG_DOC_DIR` as `<repo_basename>__<num>.md` (overwrite); the raw fetch (via `log_raw_issue`) before any strip touches it; invokes `rag-cli index` via subprocess; raises `RuntimeError` on non-zero exit (busy/locked detected via stderr, message includes recovery command); returns `list[TextContent]` summary.
 **Called by:** `cli.py`.
 **Calls out:** `requests`, `mcp.types`; imports from `get_issue.py`, `get_issue_comments.py`, `text_cleaning.py` (`strip_generic_noise` then `strip_build_logs`, both applied additively after `strip_noise`/`strip_comments_noise`, to body and comments separately — see `text_cleaning.py` entry for why separately is safe against a build log spanning the body/comments boundary), `raw_logging.py` (`log_raw_issue`, called on the two raw fetch strings before either is cleaned), `config.py` (`RAG_ROOT`, `DEFAULT_LIMIT`).
+
+`strip_noise` (body) and `strip_comments_noise` (comments) also strip junk class F — a tracker-migration attribution header: `**[Original report](bitbucket_url) by NAME (...).**` (issue body, first content) or `**Original comment by NAME (...).**` (each migrated comment), always followed by a blank line then exactly 40 dashes. Module-level `MIGRATION_REPORT_RE`, `MIGRATION_COMMENT_RE`, `MIGRATION_RULE_RE` anchor the three-line span (header + blank + rule), dropped together; both functions use an `enumerate` + `skip_until` index sentinel to consume the lookahead without disturbing the existing per-line checks. Observed only in the pyobjc repo (7 issues) as of 2026-08-28 — see `process-docs/content_cleaning/`.
 
 ---
 

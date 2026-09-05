@@ -26,6 +26,18 @@ logger = logging.getLogger(__name__)
 RAG_DOC_DIR = RAG_ROOT / "data" / "documents" / "github_issues"
 COLLECTION  = "github_issues"
 
+# Tracker-migration attribution header (junk class F): a bold line — either
+# "**[Original report](bitbucket_url) by NAME (Bitbucket: [..](..), GitHub: [..](..)).**" (issue
+# body, first content) or "**Original comment by NAME (...).**" (each migrated comment) —
+# followed by a blank line then exactly 40 dashes. A script wrote this into every issue/comment
+# migrated from Bitbucket to GitHub; observed only in the pyobjc repo (7 issues) as of 2026-08-28,
+# see process-docs/content_cleaning/. Anonymous/GitHub-less variants ("by Anonymous.**",
+# "(Bitbucket: [..](..), ).**") both still end in ").**"/"s.**", so the trailing ".**" anchor
+# covers them without widening past what the corpus shows.
+MIGRATION_REPORT_RE = re.compile(r'^\*\*\[Original report\]\([^)]*\) by .+\.\*\*$')
+MIGRATION_COMMENT_RE = re.compile(r'^\*\*Original comment by .+\.\*\*$')
+MIGRATION_RULE_RE = re.compile(r'^-{40}$')
+
 
 # ORCHESTRATOR
 
@@ -112,11 +124,20 @@ def strip_noise(text: str) -> tuple[str, str]:
     title = ""
     title_extracted = False
     out = []
+    lines = text.splitlines()
+    skip_until = -1
 
-    for line in text.splitlines():
+    for i, line in enumerate(lines):
+        if i <= skip_until:
+            continue
         if not title_extracted and line.startswith("# "):
             title = line[2:].strip()
             title_extracted = True
+            continue
+        # TRACKER_MIGRATION (class F): header line + blank + 40-dash rule, all dropped together
+        if (MIGRATION_REPORT_RE.match(line) and i + 2 < len(lines)
+                and lines[i + 1].strip() == '' and MIGRATION_RULE_RE.match(lines[i + 2])):
+            skip_until = i + 2
             continue
         if any(line.startswith(p) for p in METADATA_PREFIXES):
             continue
@@ -129,14 +150,18 @@ def strip_noise(text: str) -> tuple[str, str]:
     return "\n".join(out), title
 
 
-# Clean comments text: drop bot comments, strip Author/Date metadata, strip quoted-reply lines
+# Clean comments text: drop bot comments, strip Author/Date metadata, strip quoted-reply lines,
+# strip tracker-migration attribution header + rule (class F)
 def strip_comments_noise(comments_text: str) -> str:
     SEP_RE = re.compile(r'^--- Comment \d+ ---$')
     lines = comments_text.split('\n')
     out = []
     in_bot_block = False
+    skip_until = -1
 
     for i, line in enumerate(lines):
+        if i <= skip_until:
+            continue
         if SEP_RE.match(line):
             author_line = ''
             for j in range(i + 1, min(i + 4, len(lines))):
@@ -149,6 +174,11 @@ def strip_comments_noise(comments_text: str) -> str:
                 in_bot_block = False
                 out.append(line)
         elif in_bot_block:
+            continue
+        # TRACKER_MIGRATION (class F): header line + blank + 40-dash rule, all dropped together
+        elif (MIGRATION_COMMENT_RE.match(line) and i + 2 < len(lines)
+                and lines[i + 1].strip() == '' and MIGRATION_RULE_RE.match(lines[i + 2])):
+            skip_until = i + 2
             continue
         elif line.startswith('Author:') or line.startswith('Date:'):
             continue
